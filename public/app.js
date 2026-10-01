@@ -86,12 +86,15 @@ function unlockAudio() {
   const a = new Audio(SILENCE);
   a.play().then(() => { audioReady = true; }).catch(() => {});
   audio.play().then(() => { audio.pause(); audioReady = true; }).catch(() => {});
+  // Le lecteur d'extraits demarre apres un aller-retour reseau, donc hors du
+  // geste utilisateur : il doit etre debloque ici, sinon Safari le refusera.
+  preview.play().then(() => { preview.pause(); }).catch(() => {});
 }
 document.addEventListener('click', unlockAudio, { once: false });
 
 // --- ecoute pendant la selection --------------------------------------------
-// La cle est l'URL : un meme morceau present dans les resultats ET dans ta
-// selection affiche donc l'etat lecture sur les deux boutons, ce qui est juste.
+// Les URL d'extrait sont signees et expirent en ~15 min : on ne les conserve
+// jamais, on en demande une fraiche au serveur au moment du clic.
 function stopPreview() {
   preview.pause();
   previewKey = null;
@@ -99,24 +102,33 @@ function stopPreview() {
 }
 preview.onended = stopPreview;
 
-function makePlayButton(url) {
+function makePlayButton(trackKey) {
   const b = document.createElement('button');
   b.className = 'play';
   b.type = 'button';
   b.setAttribute('aria-label', 'Écouter un extrait');
   // L'etat est recalcule a chaque rendu : la liste est reconstruite des qu'un
   // joueur ajoute un morceau, et l'extrait en cours doit garder son icone.
-  b.textContent = previewKey === url ? '⏸' : '▶';
-  b.onclick = (e) => {
+  b.textContent = previewKey === trackKey ? '⏸' : '▶';
+  b.onclick = async (e) => {
     e.stopPropagation();   // sinon un clic sur ▶ ajouterait aussi le morceau
-    if (previewKey === url) return stopPreview();
+    if (previewKey === trackKey) return stopPreview();
     stopPreview();
-    previewKey = url;
-    preview.src = url;
-    preview.currentTime = 0;
-    preview.play()
-      .then(() => { b.textContent = '⏸'; })
-      .catch(() => { stopPreview(); toast('Extrait indisponible'); });
+    previewKey = trackKey;
+    b.textContent = '…';
+    try {
+      const r = await fetch(`/api/preview?id=${encodeURIComponent(trackKey)}`);
+      const body = await r.json();
+      if (previewKey !== trackKey) return;        // un autre bouton a pris la main
+      if (!r.ok || !body.url) throw new Error(body.error || 'ko');
+      preview.src = body.url;
+      preview.currentTime = 0;
+      await preview.play();
+      b.textContent = '⏸';
+    } catch {
+      stopPreview();
+      toast('Extrait indisponible');
+    }
   };
   return b;
 }
@@ -204,7 +216,7 @@ async function runSearch(q) {
         <div class="info"><div class="t"></div><div class="a"></div></div>`;
       li.querySelector('.t').textContent = t.title;
       li.querySelector('.a').textContent = t.artist;
-      li.appendChild(makePlayButton(t.previewUrl));
+      li.appendChild(makePlayButton(t.trackKey));
       li.onclick = () => {
         stopPreview();
         socket.emit('track:submit', t);
@@ -279,12 +291,12 @@ function renderPicking(s) {
       <div class="info"><div class="t"></div><div class="a"></div></div>`;
     li.querySelector('.t').textContent = m.title;
     li.querySelector('.a').textContent = m.artist;
-    li.appendChild(makePlayButton(m.previewUrl));
+    li.appendChild(makePlayButton(m.trackKey));
 
     const del = document.createElement('button');
     del.textContent = 'Retirer';
     del.onclick = () => {
-      if (previewKey === m.previewUrl) stopPreview();
+      if (previewKey === m.trackKey) stopPreview();
       socket.emit('track:remove', { id: m.id });
     };
     li.appendChild(del);
@@ -338,14 +350,20 @@ function schedulePlayback(r) {
   scheduledIndex = r.index;
 
   clearTimeout(playTimer);
-  audio.src = r.previewUrl;
-  audio.load();
 
-  const wait = Math.max(0, r.startAt - serverNow());
-  playTimer = setTimeout(() => {
-    audio.currentTime = 0;
-    audio.play().catch(() => toast('Touche l\'écran pour activer le son'));
-  }, wait);
+  // Le serveur n'a pas pu resigner l'URL : la manche se joue sans son plutot
+  // que de bloquer la partie.
+  if (!r.previewUrl) {
+    $('voteStatus').textContent = 'Extrait indisponible — vote quand même';
+  } else {
+    audio.src = r.previewUrl;
+    audio.load();
+    const wait = Math.max(0, r.startAt - serverNow());
+    playTimer = setTimeout(() => {
+      audio.currentTime = 0;
+      audio.play().catch(() => toast('Touche l\'écran pour activer le son'));
+    }, wait);
+  }
 
   clearInterval(barTimer);
   barTimer = setInterval(() => {

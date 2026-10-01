@@ -40,7 +40,7 @@ const until = async (fn, l, ms = 15000) => {
   await until(() => a.state?.phase === 'PICKING', 'selection');
   for (const cl of [a, b, c])
     for (let i = 0; i < 3; i++)
-      cl.s.emit('track:submit', { trackKey: `${cl.pseudo}${i}`, title: `T${i}`, artist: 'A', artwork: '', previewUrl: 'http://x.mp3' });
+      cl.s.emit('track:submit', { trackKey: `${200 + i}${cl.pseudo.length}`, title: `T${i}`, artist: 'A', artwork: '' });
   await until(() => a.state?.players.every((p) => p.trackCount === 3), 'selections');
 
   [a, b, c].forEach((cl) => cl.s.emit('player:ready', { ready: true }));

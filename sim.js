@@ -5,14 +5,13 @@ import { io } from 'socket.io-client';
 
 const URL = 'http://localhost:3000';
 const PSEUDOS = ['Alice', 'Bob', 'Cook'];
-const SHARED = { trackKey: '999', title: 'Morceau partagé', artist: 'X', artwork: '', previewUrl: 'https://audio-ssl.itunes.apple.com/x/9.m4a' };
+const SHARED = { trackKey: '999', title: 'Morceau partagé', artist: 'X', artwork: '' };
 
 const fakeTrack = (who, i) => ({
-  trackKey: `${who}-${i}`,
+  trackKey: `${100 + i}${who.length}`,
   title: `Titre ${who}${i}`,
   artist: `Artiste ${who}`,
   artwork: '',
-  previewUrl: `https://audio-ssl.itunes.apple.com/x/${who}${i}.m4a`,
 });
 
 const problems = [];
@@ -94,14 +93,15 @@ const until = async (fn, label, ms = 5000) => {
   // Chaque joueur ne voit QUE sa propre selection
   check(a.state.mySubmissions.length === 3, 'Alice ne voit pas ses 3 morceaux');
   check(JSON.stringify(a.state).indexOf('TitreBob') === -1, 'Alice voit la selection de Bob');
-  // ...mais avec l'URL audio, pour pouvoir reecouter ses propres choix
+  // ...mais avec l'identifiant, pour que le bouton d'ecoute puisse demander
+  // une URL fraiche. L'URL signee elle-meme n'est jamais stockee ni diffusee.
   check(
-    a.state.mySubmissions.every((m) => typeof m.previewUrl === 'string' && m.previewUrl.startsWith('https://')),
-    'previewUrl absente de ma propre selection : impossible de reecouter'
+    a.state.mySubmissions.every((m) => /^\d+$/.test(String(m.trackKey))),
+    'trackKey absent de ma propre selection : impossible de reecouter'
   );
   check(
-    JSON.stringify(a.state).indexOf('/Bob') === -1,
-    'une URL audio appartenant a Bob est visible par Alice'
+    JSON.stringify(a.state).indexOf('dzcdn.net') === -1,
+    'une URL d\'extrait signee circule vers le client en phase de selection'
   );
 
   // Doublon refuse pour un meme joueur
@@ -111,7 +111,7 @@ const until = async (fn, label, ms = 5000) => {
 
   // Une URL qui ne vient pas d'Apple doit etre refusee
   const avantPirate = a.state.mySubmissions.length;
-  a.s.emit('track:submit', { trackKey: 'pirate', title: 'X', artist: 'X', artwork: '', previewUrl: 'https://evil.example.com/a.mp3' });
+  a.s.emit('track:submit', { trackKey: 'pirate', title: 'X', artist: 'X', artwork: 'https://evil.example.com/a.jpg' });
   await wait(120);
   check(a.state.mySubmissions.length === avantPirate, 'une URL arbitraire a ete acceptee comme morceau');
 

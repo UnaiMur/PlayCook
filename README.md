@@ -60,11 +60,19 @@ ne quitte jamais `server.js` avant la révélation : `publicState()` construit u
 vue différente pour chaque joueur et n'y met que ce qu'il a le droit de voir.
 Ouvrir l'onglet réseau du navigateur ne donne donc aucun avantage.
 
-**Source audio : l'API iTunes Search** (`/api/search`). Pas de clé, pas de compte,
-extraits de 30 secondes. Spotify ne convient plus : son champ `preview_url` est
-`null` pour toute application créée après le 27 novembre 2024. Apple n'envoie pas
-d'en-têtes CORS, donc la requête passe obligatoirement par le serveur, qui met
-aussi en cache (l'API plafonne vers 20 appels par minute).
+**Source audio : l'API Deezer** (`api.deezer.com`), sans clé ni compte, extraits
+de 30 secondes. Spotify ne convient plus (`preview_url` est `null` pour toute
+application créée après le 27 novembre 2024), et Apple renvoie des 403 depuis les
+IP d'hébergeur, quel que soit le débit.
+
+**Les URL d'extrait Deezer sont signées et expirent en ~15 minutes.** Elles ne
+sont donc jamais stockées ni envoyées au navigateur : le serveur ne garde que
+l'identifiant du morceau et resigne l'URL juste avant chaque lecture — à chaque
+manche pour la partie, à chaque clic sur ▶ pour la phase de sélection. Sans ça,
+les dernières manches d'une longue partie seraient muettes.
+
+Le débit sortant est encadré : cache d'une heure sur les métadonnées, file qui
+espace les appels, et quarantaine d'une minute si la source refuse.
 
 **Synchronisation du son.** Le serveur annonce un instant de départ absolu
 (`startAt`). Chaque client estime d'abord son décalage d'horloge avec le serveur

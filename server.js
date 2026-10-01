@@ -33,22 +33,32 @@ const CONFIG = {
 };
 
 // ---------------------------------------------------------------------------
-// Proxy iTunes
+// Proxy Deezer
 //
-// Deux raisons d'exister : Apple n'envoie pas d'en-tetes CORS (appel impossible
-// depuis le navigateur), et surtout sa limite de debit est PAR IP. Tous les
-// joueurs passant par ce serveur partagent donc un seul quota : a sept qui
-// cherchent en meme temps, le plafond saute en quelques secondes.
+// Apple renvoyait des 403 meme a une requete par minute : l'IP de sortie de
+// l'hebergeur est bloquee, et aucun reglage de debit n'y change rien. Deezer
+// prend le relais : api.deezer.com, sans cle ni compte.
 //
-// D'ou trois garde-fous : un cache genereux (un cache touche ne consomme rien),
-// une file qui espace les appels sortants au lieu de les laisser partir en
-// rafale, et une mise en quarantaine quand Apple repond 403.
+// PARTICULARITE IMPORTANTE : les URL d'extrait Deezer sont signees et expirent
+// au bout d'environ 15 minutes (parametre hdnea=exp=...). On ne les stocke donc
+// JAMAIS. On ne garde que l'identifiant du morceau, et on resigne l'URL juste
+// avant chaque lecture. Sinon un morceau choisi en phase de selection serait
+// muet le temps que la partie arrive jusqu'a lui.
+//
+// Le debit reste encadre : cache sur les metadonnees, file qui espace les
+// appels sortants, quarantaine si la source refuse.
 // ---------------------------------------------------------------------------
+const API = 'https://api.deezer.com';
+const PREVIEW_HOST = /^https:\/\/[\w.-]+\.dzcdn\.net\//;
+
 const searchCache = new Map();
+const previewCache = new Map();
 const CACHE_TTL = num(process.env.CACHE_TTL_MS, 60 * 60 * 1000);
+// Bien en deca des ~15 min de validite d'une URL signee
+const PREVIEW_TTL = num(process.env.PREVIEW_TTL_MS, 5 * 60 * 1000);
 const CACHE_MAX = 500;
-const GAP_MS = num(process.env.ITUNES_GAP_MS, 3000);      // ~20 appels/minute
-const MAX_WAIT_MS = num(process.env.ITUNES_MAX_WAIT_MS, 20000);
+const GAP_MS = num(process.env.API_GAP_MS, 400);
+const MAX_WAIT_MS = num(process.env.API_MAX_WAIT_MS, 20000);
 
 let lastCall = 0;
 let queued = 0;
@@ -56,6 +66,7 @@ let chain = Promise.resolve();
 let cooldownUntil = 0;
 
 const normalize = (q) => q.trim().toLowerCase().replace(/\s+/g, ' ');
+const secure = (u) => (u || '').replace(/^http:\/\//, 'https://');
 
 // Serialise les appels sortants avec un intervalle minimum entre deux.
 function schedule(fn) {
@@ -71,37 +82,56 @@ function schedule(fn) {
   return run;
 }
 
-async function fetchItunes(term) {
-  const url = new URL('https://itunes.apple.com/search');
-  url.searchParams.set('term', term);
-  url.searchParams.set('media', 'music');
-  url.searchParams.set('entity', 'song');
-  url.searchParams.set('country', 'FR');
-  url.searchParams.set('limit', '12');
-
-  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+async function callApi(path) {
+  const r = await fetch(API + path, { signal: AbortSignal.timeout(8000) });
   if (!r.ok) {
-    const e = new Error(`iTunes ${r.status}`);
+    const e = new Error(`deezer ${r.status}`);
     e.status = r.status;
     throw e;
   }
   const json = await r.json();
+  // Deezer signale ses erreurs dans un corps 200, quota compris
+  if (json && json.error && Object.keys(json.error).length) {
+    const e = new Error(json.error.message || json.error.type || 'erreur deezer');
+    e.status = /quota|limit/i.test(e.message) ? 429 : 502;
+    throw e;
+  }
+  return json;
+}
 
-  // Apple renvoie parfois des URL en http. Sur une page servie en https,
-  // le navigateur bloquerait ces ressources (contenu mixte) : le son ne
-  // partirait jamais et les pochettes resteraient vides. Invisible en local
-  // sur http://localhost, fatal une fois deploye.
-  const secure = (u) => (u || '').replace(/^http:\/\//, 'https://');
-
-  return (json.results || [])
-    .filter((t) => t.previewUrl)
+async function searchTracks(term) {
+  const json = await callApi(`/search?limit=12&q=${encodeURIComponent(term)}`);
+  // previewUrl volontairement absent : il expirerait avant d'etre utilise
+  return (json.data || [])
+    .filter((t) => t.id && t.preview && t.readable !== false)
     .map((t) => ({
-      trackKey: String(t.trackId),
-      title: t.trackName,
-      artist: t.artistName,
-      artwork: secure((t.artworkUrl100 || '').replace('100x100', '300x300')),
-      previewUrl: secure(t.previewUrl),
+      trackKey: String(t.id),
+      title: t.title,
+      artist: t.artist?.name || '',
+      artwork: secure(t.album?.cover_medium || t.album?.cover || ''),
     }));
+}
+
+async function resolvePreview(trackKey) {
+  const hit = previewCache.get(trackKey);
+  if (hit && Date.now() - hit.at < PREVIEW_TTL) return hit.url;
+
+  const json = await schedule(() => callApi(`/track/${encodeURIComponent(trackKey)}`));
+  const url = secure(json.preview || '');
+  if (!PREVIEW_HOST.test(url)) throw new Error('extrait introuvable');
+
+  if (previewCache.size >= CACHE_MAX) previewCache.delete(previewCache.keys().next().value);
+  previewCache.set(trackKey, { at: Date.now(), url });
+  return url;
+}
+
+function apiError(res, err, quoi) {
+  console.error(`[${quoi}]`, err.status || '-', err.message, `| file: ${queued}`);
+  if (err.status === 403 || err.status === 429) {
+    cooldownUntil = Date.now() + 60000;
+    return res.status(429).json({ error: 'rate', retryIn: 60 });
+  }
+  return res.status(502).json({ error: 'down' });
 }
 
 app.get('/api/search', async (req, res) => {
@@ -119,17 +149,28 @@ app.get('/api/search', async (req, res) => {
   }
 
   try {
-    const data = await schedule(() => fetchItunes(key));
+    const data = await schedule(() => searchTracks(key));
     if (searchCache.size >= CACHE_MAX) searchCache.delete(searchCache.keys().next().value);
     searchCache.set(key, { at: Date.now(), data });
     res.json(data);
   } catch (err) {
-    console.error('[itunes]', err.status || '-', err.message, `| file: ${queued}`);
-    if (err.status === 403 || err.status === 429) {
-      cooldownUntil = Date.now() + 60000;
-      return res.status(429).json({ error: 'rate', retryIn: 60 });
-    }
-    res.status(502).json({ error: 'down' });
+    apiError(res, err, 'recherche');
+  }
+});
+
+// Signe une URL d'extrait a la demande, pour les boutons d'ecoute de la
+// phase de selection. La partie, elle, resigne cote serveur a chaque manche.
+app.get('/api/preview', async (req, res) => {
+  const id = String(req.query.id || '').trim();
+  if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'bad' });
+
+  const reste = Math.ceil((cooldownUntil - Date.now()) / 1000);
+  if (reste > 0) return res.status(429).json({ error: 'rate', retryIn: reste });
+
+  try {
+    res.json({ url: await resolvePreview(id) });
+  } catch (err) {
+    apiError(res, err, 'extrait');
   }
 });
 
@@ -199,14 +240,14 @@ function publicState(room, playerId) {
   if (room.phase === 'PICKING') {
     state.mySubmissions = room.submissions
       .filter((s) => s.ownerIds.includes(playerId))
-      // previewUrl inclus : ce sont TES morceaux, tu sais deja ce que tu as mis.
-      // Rien ne fuite ici, les choix des autres ne sont pas dans cette liste.
+      // trackKey inclus : ce sont TES morceaux, tu sais deja ce que tu as mis,
+      // et le bouton d'ecoute s'en sert pour demander une URL fraiche.
       .map((s) => ({
         id: s.id,
+        trackKey: s.trackKey,
         title: s.title,
         artist: s.artist,
         artwork: s.artwork,
-        previewUrl: s.previewUrl,
       }));
     state.myReady = room.players.get(playerId)?.ready === true;
     // L'hote ne peut plus partir avant que chacun se soit declare pret
@@ -263,11 +304,24 @@ function broadcast(room) {
 // ---------------------------------------------------------------------------
 // Boucle de jeu
 // ---------------------------------------------------------------------------
-function startRound(room) {
+async function startRound(room) {
   clearTimer(room);
   room.votes = {};
   room.lastReveal = null;
   room.phase = 'PLAYING';
+
+  // L'URL signee expire en ~15 min : on la resigne juste avant de la diffuser,
+  // sinon les dernieres manches d'une longue partie seraient muettes.
+  const current = room.playlist[room.currentIndex];
+  if (current) {
+    try {
+      current.previewUrl = await resolvePreview(current.trackKey);
+    } catch (err) {
+      console.error('[extrait]', current.trackKey, err.message);
+      current.previewUrl = null;   // la manche se joue quand meme, sans son
+    }
+  }
+
   room.roundStartAt = Date.now() + CONFIG.leadMs;
   broadcast(room);
 
@@ -333,7 +387,7 @@ function nextRound(room) {
     return;
   }
   room.currentIndex += 1;
-  startRound(room);
+  startRound(room).catch((e) => console.error("[manche]", e.message));
 }
 
 // ---------------------------------------------------------------------------
@@ -409,14 +463,14 @@ io.on('connection', (socket) => {
   socket.on('track:submit', (track) => {
     const r = room();
     if (!r || r.phase !== 'PICKING') return;
-    if (!track?.previewUrl || !track?.trackKey) return fail('Morceau invalide');
+    if (!track?.trackKey) return fail('Morceau invalide');
 
-    // Le client renvoie l'objet piste : on ne le croit pas sur parole. Sans
-    // ce controle, n'importe qui pourrait faire pointer la lecture ou les
-    // pochettes des autres joueurs vers l'URL de son choix.
-    const okAudio = /^https:\/\/[\w.-]+\.apple\.com\//.test(track.previewUrl);
-    const okImage = !track.artwork || /^https:\/\/[\w.-]+\.mzstatic\.com\//.test(track.artwork);
-    if (!okAudio || !okImage) return fail('Morceau invalide');
+    // Le client renvoie l'objet piste : on ne le croit pas sur parole. L'URL
+    // audio, elle, n'arrive jamais d'ici — le serveur la resigne lui-meme a
+    // partir du seul identifiant.
+    const okId = /^\d+$/.test(String(track.trackKey));
+    const okImage = !track.artwork || /^https:\/\/[\w.-]+\.dzcdn\.net\//.test(track.artwork);
+    if (!okId || !okImage) return fail('Morceau invalide');
 
     const clean = (s) => String(s ?? '').slice(0, 200);
 
@@ -434,7 +488,7 @@ io.on('connection', (socket) => {
         title: clean(track.title),
         artist: clean(track.artist),
         artwork: clean(track.artwork),
-        previewUrl: clean(track.previewUrl),
+        previewUrl: null,          // resigne a chaque lecture
         ownerIds: [playerId],
       });
     }
@@ -479,7 +533,7 @@ io.on('connection', (socket) => {
 
     r.playlist = shuffle(r.submissions);
     r.currentIndex = 0;
-    startRound(r);
+    startRound(r).catch((e) => console.error("[manche]", e.message));
   });
 
   socket.on('vote:cast', ({ suspectId }) => {
