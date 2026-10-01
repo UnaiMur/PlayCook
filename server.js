@@ -33,53 +33,103 @@ const CONFIG = {
 };
 
 // ---------------------------------------------------------------------------
-// Proxy iTunes (l'API Apple n'envoie pas d'en-tetes CORS : impossible de
-// l'appeler depuis le navigateur, tout passe par ici)
+// Proxy iTunes
+//
+// Deux raisons d'exister : Apple n'envoie pas d'en-tetes CORS (appel impossible
+// depuis le navigateur), et surtout sa limite de debit est PAR IP. Tous les
+// joueurs passant par ce serveur partagent donc un seul quota : a sept qui
+// cherchent en meme temps, le plafond saute en quelques secondes.
+//
+// D'ou trois garde-fous : un cache genereux (un cache touche ne consomme rien),
+// une file qui espace les appels sortants au lieu de les laisser partir en
+// rafale, et une mise en quarantaine quand Apple repond 403.
 // ---------------------------------------------------------------------------
 const searchCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000;
+const CACHE_TTL = num(process.env.CACHE_TTL_MS, 60 * 60 * 1000);
+const CACHE_MAX = 500;
+const GAP_MS = num(process.env.ITUNES_GAP_MS, 3000);      // ~20 appels/minute
+const MAX_WAIT_MS = num(process.env.ITUNES_MAX_WAIT_MS, 20000);
+
+let lastCall = 0;
+let queued = 0;
+let chain = Promise.resolve();
+let cooldownUntil = 0;
+
+const normalize = (q) => q.trim().toLowerCase().replace(/\s+/g, ' ');
+
+// Serialise les appels sortants avec un intervalle minimum entre deux.
+function schedule(fn) {
+  queued += 1;
+  const run = chain.then(async () => {
+    const attente = Math.max(0, lastCall + GAP_MS - Date.now());
+    if (attente) await new Promise((r) => setTimeout(r, attente));
+    lastCall = Date.now();
+    return fn();
+  });
+  chain = run.then(() => {}, () => {});
+  run.then(() => { queued -= 1; }, () => { queued -= 1; });
+  return run;
+}
+
+async function fetchItunes(term) {
+  const url = new URL('https://itunes.apple.com/search');
+  url.searchParams.set('term', term);
+  url.searchParams.set('media', 'music');
+  url.searchParams.set('entity', 'song');
+  url.searchParams.set('country', 'FR');
+  url.searchParams.set('limit', '12');
+
+  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!r.ok) {
+    const e = new Error(`iTunes ${r.status}`);
+    e.status = r.status;
+    throw e;
+  }
+  const json = await r.json();
+
+  // Apple renvoie parfois des URL en http. Sur une page servie en https,
+  // le navigateur bloquerait ces ressources (contenu mixte) : le son ne
+  // partirait jamais et les pochettes resteraient vides. Invisible en local
+  // sur http://localhost, fatal une fois deploye.
+  const secure = (u) => (u || '').replace(/^http:\/\//, 'https://');
+
+  return (json.results || [])
+    .filter((t) => t.previewUrl)
+    .map((t) => ({
+      trackKey: String(t.trackId),
+      title: t.trackName,
+      artist: t.artistName,
+      artwork: secure((t.artworkUrl100 || '').replace('100x100', '300x300')),
+      previewUrl: secure(t.previewUrl),
+    }));
+}
 
 app.get('/api/search', async (req, res) => {
-  const q = (req.query.q || '').trim();
-  if (q.length < 2) return res.json([]);
+  const raw = (req.query.q || '').trim();
+  if (raw.length < 2) return res.json([]);
 
-  const key = q.toLowerCase();
+  const key = normalize(raw);
   const hit = searchCache.get(key);
   if (hit && Date.now() - hit.at < CACHE_TTL) return res.json(hit.data);
 
+  const reste = Math.ceil((cooldownUntil - Date.now()) / 1000);
+  if (reste > 0) return res.status(429).json({ error: 'rate', retryIn: reste });
+  if ((queued + 1) * GAP_MS > MAX_WAIT_MS) {
+    return res.status(429).json({ error: 'busy', retryIn: Math.ceil(MAX_WAIT_MS / 1000) });
+  }
+
   try {
-    const url = new URL('https://itunes.apple.com/search');
-    url.searchParams.set('term', q);
-    url.searchParams.set('media', 'music');
-    url.searchParams.set('entity', 'song');
-    url.searchParams.set('country', 'FR');
-    url.searchParams.set('limit', '12');
-
-    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!r.ok) throw new Error(`iTunes ${r.status}`);
-    const json = await r.json();
-
-    // Apple renvoie parfois des URL en http. Sur une page servie en https,
-    // le navigateur bloquerait ces ressources (contenu mixte) : le son ne
-    // partirait jamais et les pochettes resteraient vides. Invisible en local
-    // sur http://localhost, fatal une fois deploye.
-    const secure = (u) => (u || '').replace(/^http:\/\//, 'https://');
-
-    const data = (json.results || [])
-      .filter((t) => t.previewUrl)
-      .map((t) => ({
-        trackKey: String(t.trackId),
-        title: t.trackName,
-        artist: t.artistName,
-        artwork: secure((t.artworkUrl100 || '').replace('100x100', '300x300')),
-        previewUrl: secure(t.previewUrl),
-      }));
-
+    const data = await schedule(() => fetchItunes(key));
+    if (searchCache.size >= CACHE_MAX) searchCache.delete(searchCache.keys().next().value);
     searchCache.set(key, { at: Date.now(), data });
     res.json(data);
   } catch (err) {
-    console.error('[itunes]', err.message);
-    res.status(502).json({ error: 'Recherche indisponible' });
+    console.error('[itunes]', err.status || '-', err.message, `| file: ${queued}`);
+    if (err.status === 403 || err.status === 429) {
+      cooldownUntil = Date.now() + 60000;
+      return res.status(429).json({ error: 'rate', retryIn: 60 });
+    }
+    res.status(502).json({ error: 'down' });
   }
 });
 

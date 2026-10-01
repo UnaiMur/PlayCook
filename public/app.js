@@ -156,22 +156,49 @@ $('btnReady').onclick = () => socket.emit('player:ready', { ready: !state?.myRea
 $('btnStart').onclick = () => socket.emit('game:start');
 $('btnSkip').onclick = () => socket.emit('round:skip');
 
-// --- recherche (debounce : l'API iTunes plafonne vers 20 appels/minute) -----
+// --- recherche --------------------------------------------------------------
+// Chaque frappe partait en requete : a plusieurs joueurs, le quota d'Apple
+// (partage par tout le serveur, il est par IP) sautait en quelques secondes.
+// D'ou un anti-rebond long, un minimum de 3 caracteres, et Entree pour forcer.
 let searchTimer = null;
+let searchSeq = 0;
+
 $('search').oninput = (e) => {
   clearTimeout(searchTimer);
   const q = e.target.value.trim();
-  if (q.length < 2) return ($('results').innerHTML = '');
-  searchTimer = setTimeout(() => runSearch(q), 350);
+  if (q.length < 3) return ($('results').innerHTML = '');
+  searchTimer = setTimeout(() => runSearch(q), 700);
+};
+
+$('search').onkeydown = (e) => {
+  if (e.key !== 'Enter') return;
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  if (q.length >= 2) runSearch(q);
 };
 
 async function runSearch(q) {
+  const seq = ++searchSeq;
+  $('results').innerHTML = '<li class="loading">Recherche…</li>';
   try {
     const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-    const tracks = await r.json();
-    if (!Array.isArray(tracks)) throw new Error();
+    const body = await r.json();
+    if (seq !== searchSeq) return;          // une frappe plus recente a pris la main
+
+    if (!r.ok) {
+      $('results').innerHTML = '';
+      if (body.error === 'rate' || body.error === 'busy') {
+        toast(`Trop de recherches en même temps — réessaie dans ${body.retryIn || 10} s`);
+      } else {
+        toast('Recherche indisponible');
+      }
+      return;
+    }
+
     $('results').innerHTML = '';
-    for (const t of tracks) {
+    if (!body.length) return toast('Aucun résultat');
+
+    for (const t of body) {
       const li = document.createElement('li');
       li.innerHTML = `<img src="${t.artwork}" alt="">
         <div class="info"><div class="t"></div><div class="a"></div></div>`;
@@ -187,6 +214,8 @@ async function runSearch(q) {
       $('results').appendChild(li);
     }
   } catch {
+    if (seq !== searchSeq) return;
+    $('results').innerHTML = '';
     toast('Recherche indisponible');
   }
 }
