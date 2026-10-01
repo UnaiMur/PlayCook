@@ -1,4 +1,4 @@
-# Qui écoute ça ?
+# Qui a mis ça ?
 
 Blind-test multijoueur en navigateur. Phase 1 : chacun choisit 3 à 5 morceaux.
 Phase 2 : ils passent dans un ordre aléatoire et il faut deviner qui les a mis.
@@ -79,6 +79,12 @@ via un échantillon silencieux.
 partie à l'autre. Sur iOS le volume est matériel et `audio.volume` n'a aucun
 effet : le curseur est détecté comme inopérant et masqué plutôt que d'afficher
 une commande morte.
+
+**Écoute pendant la sélection.** Un bouton ▶ sur chaque résultat de recherche et
+sur chaque morceau de sa propre liste. Un lecteur audio distinct de celui de la
+partie, arrêté dès qu'on quitte la phase de sélection. Les `previewUrl` ne sont
+envoyées au client que pour ses propres morceaux : la sélection des autres reste
+entièrement côté serveur.
 
 **Déroulement d'un tour.** Le morceau joue toujours `VOTE_MS` en entier, même
 quand tout le monde a déjà voté : les votes sont enregistrés au fil de l'eau

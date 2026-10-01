@@ -149,7 +149,15 @@ function publicState(room, playerId) {
   if (room.phase === 'PICKING') {
     state.mySubmissions = room.submissions
       .filter((s) => s.ownerIds.includes(playerId))
-      .map((s) => ({ id: s.id, title: s.title, artist: s.artist, artwork: s.artwork }));
+      // previewUrl inclus : ce sont TES morceaux, tu sais deja ce que tu as mis.
+      // Rien ne fuite ici, les choix des autres ne sont pas dans cette liste.
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        artist: s.artist,
+        artwork: s.artwork,
+        previewUrl: s.previewUrl,
+      }));
     state.myReady = room.players.get(playerId)?.ready === true;
     // L'hote ne peut plus partir avant que chacun se soit declare pret
     state.canStart =

@@ -22,6 +22,12 @@ audio.preload = 'auto';
 // et le reclamer ferait echouer le chargement. Il ne serait utile que pour
 // analyser le son via la Web Audio API.
 
+// Lecteur distinct pour les ecoutes de la phase de selection : il ne doit
+// jamais entrer en conflit avec celui de la partie.
+const preview = new Audio();
+preview.preload = 'none';
+let previewKey = null;
+
 // --- volume -----------------------------------------------------------------
 // Reglage purement local : chacun le sien, conserve d'une partie a l'autre.
 // iOS ignore audio.volume (le volume y est materiel) : on detecte le cas et on
@@ -35,6 +41,7 @@ function volumeSupported() {
 function applyVolume(pct) {
   const v = Math.max(0, Math.min(100, Number(pct) || 0));
   audio.volume = v / 100;
+  preview.volume = v / 100;
   $('volIcon').textContent = v === 0 ? '🔇' : v < 50 ? '🔈' : '🔊';
   try { localStorage.setItem('volume', String(v)); } catch {}
 }
@@ -81,6 +88,38 @@ function unlockAudio() {
   audio.play().then(() => { audio.pause(); audioReady = true; }).catch(() => {});
 }
 document.addEventListener('click', unlockAudio, { once: false });
+
+// --- ecoute pendant la selection --------------------------------------------
+// La cle est l'URL : un meme morceau present dans les resultats ET dans ta
+// selection affiche donc l'etat lecture sur les deux boutons, ce qui est juste.
+function stopPreview() {
+  preview.pause();
+  previewKey = null;
+  document.querySelectorAll('.play').forEach((b) => { b.textContent = '▶'; });
+}
+preview.onended = stopPreview;
+
+function makePlayButton(url) {
+  const b = document.createElement('button');
+  b.className = 'play';
+  b.type = 'button';
+  b.setAttribute('aria-label', 'Écouter un extrait');
+  // L'etat est recalcule a chaque rendu : la liste est reconstruite des qu'un
+  // joueur ajoute un morceau, et l'extrait en cours doit garder son icone.
+  b.textContent = previewKey === url ? '⏸' : '▶';
+  b.onclick = (e) => {
+    e.stopPropagation();   // sinon un clic sur ▶ ajouterait aussi le morceau
+    if (previewKey === url) return stopPreview();
+    stopPreview();
+    previewKey = url;
+    preview.src = url;
+    preview.currentTime = 0;
+    preview.play()
+      .then(() => { b.textContent = '⏸'; })
+      .catch(() => { stopPreview(); toast('Extrait indisponible'); });
+  };
+  return b;
+}
 
 function toast(msg) {
   const t = $('toast');
@@ -138,7 +177,9 @@ async function runSearch(q) {
         <div class="info"><div class="t"></div><div class="a"></div></div>`;
       li.querySelector('.t').textContent = t.title;
       li.querySelector('.a').textContent = t.artist;
+      li.appendChild(makePlayButton(t.previewUrl));
       li.onclick = () => {
+        stopPreview();
         socket.emit('track:submit', t);
         $('search').value = '';
         $('results').innerHTML = '';
@@ -167,6 +208,9 @@ socket.on('room:state', (s) => {
   $('lobbyCode').textContent = s.code;
 
   if (s.phase !== 'PLAYING') stopAudio();
+  // Sans ca, un extrait lance pendant la selection continuerait par-dessus le
+  // premier morceau de la partie.
+  if (s.phase !== 'PICKING') stopPreview();
 
   if (s.phase === 'LOBBY') renderLobby(s);
   if (s.phase === 'PICKING') renderPicking(s);
@@ -203,11 +247,18 @@ function renderPicking(s) {
   for (const m of s.mySubmissions) {
     const li = document.createElement('li');
     li.innerHTML = `<img src="${m.artwork}" alt="">
-      <div class="info"><div class="t"></div><div class="a"></div></div>
-      <button>Retirer</button>`;
+      <div class="info"><div class="t"></div><div class="a"></div></div>`;
     li.querySelector('.t').textContent = m.title;
     li.querySelector('.a').textContent = m.artist;
-    li.querySelector('button').onclick = () => socket.emit('track:remove', { id: m.id });
+    li.appendChild(makePlayButton(m.previewUrl));
+
+    const del = document.createElement('button');
+    del.textContent = 'Retirer';
+    del.onclick = () => {
+      if (previewKey === m.previewUrl) stopPreview();
+      socket.emit('track:remove', { id: m.id });
+    };
+    li.appendChild(del);
     $('mine').appendChild(li);
   }
 

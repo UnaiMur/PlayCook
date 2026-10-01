@@ -94,6 +94,15 @@ const until = async (fn, label, ms = 5000) => {
   // Chaque joueur ne voit QUE sa propre selection
   check(a.state.mySubmissions.length === 3, 'Alice ne voit pas ses 3 morceaux');
   check(JSON.stringify(a.state).indexOf('TitreBob') === -1, 'Alice voit la selection de Bob');
+  // ...mais avec l'URL audio, pour pouvoir reecouter ses propres choix
+  check(
+    a.state.mySubmissions.every((m) => typeof m.previewUrl === 'string' && m.previewUrl.startsWith('https://')),
+    'previewUrl absente de ma propre selection : impossible de reecouter'
+  );
+  check(
+    JSON.stringify(a.state).indexOf('/Bob') === -1,
+    'une URL audio appartenant a Bob est visible par Alice'
+  );
 
   // Doublon refuse pour un meme joueur
   a.s.emit('track:submit', SHARED);
