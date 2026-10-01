@@ -22,13 +22,29 @@ body {
 
 header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--line);
 }
 header h1 { font-size: 18px; font-weight: 600; margin: 0; }
+.hright { display: flex; align-items: center; gap: 16px; }
 #roomCode { font-family: ui-monospace, monospace; letter-spacing: 3px; color: var(--accent); }
+
+.vol { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.vol #volIcon { font-size: 15px; line-height: 1; width: 18px; text-align: center; }
+/* Le style global des input ecraserait le curseur : on le remet a zero ici */
+.vol input[type="range"] {
+  width: 96px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+@media (max-width: 520px) { .vol input[type="range"] { width: 64px; } }
 
 main { max-width: 620px; margin: 0 auto; padding: 24px 20px 60px; }
 

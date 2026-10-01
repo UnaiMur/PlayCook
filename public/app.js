@@ -22,6 +22,36 @@ audio.preload = 'auto';
 // et le reclamer ferait echouer le chargement. Il ne serait utile que pour
 // analyser le son via la Web Audio API.
 
+// --- volume -----------------------------------------------------------------
+// Reglage purement local : chacun le sien, conserve d'une partie a l'autre.
+// iOS ignore audio.volume (le volume y est materiel) : on detecte le cas et on
+// masque le curseur plutot que d'afficher une commande qui ne fait rien.
+function volumeSupported() {
+  const probe = new Audio();
+  probe.volume = 0.5;
+  return probe.volume === 0.5;
+}
+
+function applyVolume(pct) {
+  const v = Math.max(0, Math.min(100, Number(pct) || 0));
+  audio.volume = v / 100;
+  $('volIcon').textContent = v === 0 ? '🔇' : v < 50 ? '🔈' : '🔊';
+  try { localStorage.setItem('volume', String(v)); } catch {}
+}
+
+if (volumeSupported()) {
+  let saved = 80;
+  try {
+    const v = localStorage.getItem('volume');
+    if (v !== null && !Number.isNaN(Number(v))) saved = Number(v);
+  } catch {}
+  $('volume').value = saved;
+  applyVolume(saved);
+  $('volume').oninput = (e) => applyVolume(e.target.value);
+} else {
+  $('volBox').style.display = 'none';
+}
+
 // --- synchronisation d'horloge ---------------------------------------------
 // Chaque navigateur a sa propre heure. On estime le decalage avec le serveur
 // pour que tout le monde demarre le son au meme instant reel.

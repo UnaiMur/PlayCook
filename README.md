@@ -75,6 +75,11 @@ Décalage résiduel : quelques dizaines de millisecondes.
 préalable. Le premier clic n'importe où dans la page débloque le contexte audio
 via un échantillon silencieux.
 
+**Volume.** Réglage local à chaque joueur, conservé dans `localStorage` d'une
+partie à l'autre. Sur iOS le volume est matériel et `audio.volume` n'a aucun
+effet : le curseur est détecté comme inopérant et masqué plutôt que d'afficher
+une commande morte.
+
 **Déroulement d'un tour.** Le morceau joue toujours `VOTE_MS` en entier, même
 quand tout le monde a déjà voté : les votes sont enregistrés au fil de l'eau
 mais n'interrompent jamais la lecture. L'écran de révélation qui suit affiche le

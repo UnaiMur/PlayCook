@@ -8,7 +8,16 @@
 </head>
 <body>
 
-<header><h1>Qui écoute ça&nbsp;?</h1><span id="roomCode"></span></header>
+<header>
+  <h1>Qui écoute ça&nbsp;?</h1>
+  <div class="hright">
+    <label class="vol" id="volBox" title="Volume">
+      <span id="volIcon">🔊</span>
+      <input type="range" id="volume" min="0" max="100" step="5" value="80" aria-label="Volume">
+    </label>
+    <span id="roomCode"></span>
+  </div>
+</header>
 
 <main>
 
