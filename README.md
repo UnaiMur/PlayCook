@@ -1,4 +1,4 @@
-# Qui a mis ça ?
+# Qui écoute ça ?
 
 Blind-test multijoueur en navigateur. Phase 1 : chacun choisit 3 à 5 morceaux.
 Phase 2 : ils passent dans un ordre aléatoire et il faut deviner qui les a mis.
