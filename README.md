@@ -34,6 +34,25 @@ LEAD_MS=1500 VOTE_MS=20000 REVEAL_MS=6000 MERGE_DUPLICATES=true npm start
 | `POINTS_CORRECT` | 100 | points pour une bonne réponse |
 | `POINTS_FOOLED` | 50 | points au propriétaire par joueur piégé |
 
+## Déployer
+
+Ce serveur garde l'état des parties **en mémoire** et tient des connexions
+WebSocket ouvertes. Deux conséquences :
+
+- **Pas de serverless.** Vercel, Netlify Functions et Cloudflare Workers ne
+  conviennent pas : il faut un processus Node qui vit en continu.
+- **Une seule instance.** Deux répliques signifient deux jeux de parties
+  distincts, et un joueur qui atterrit sur la mauvaise ne trouve pas son code.
+  Pour scaler il faudrait l'adaptateur Redis de Socket.IO et des sessions
+  persistantes ; inutile pour un jeu entre amis.
+
+Un redémarrage ou un redéploiement efface toutes les parties en cours. C'est
+acceptable ici — personne ne joue 24h/24 — mais à savoir.
+
+Sur Render (plan gratuit) : connecter le dépôt GitHub, type **Web Service**,
+build `npm install`, start `npm start`. Le port est fourni par la variable
+`PORT`, que `server.js` lit déjà.
+
 ## Comment ça marche
 
 **Le serveur est la seule source de vérité.** Le champ `ownerIds` d'un morceau

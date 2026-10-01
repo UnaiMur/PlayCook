@@ -59,14 +59,20 @@ app.get('/api/search', async (req, res) => {
     if (!r.ok) throw new Error(`iTunes ${r.status}`);
     const json = await r.json();
 
+    // Apple renvoie parfois des URL en http. Sur une page servie en https,
+    // le navigateur bloquerait ces ressources (contenu mixte) : le son ne
+    // partirait jamais et les pochettes resteraient vides. Invisible en local
+    // sur http://localhost, fatal une fois deploye.
+    const secure = (u) => (u || '').replace(/^http:\/\//, 'https://');
+
     const data = (json.results || [])
       .filter((t) => t.previewUrl)
       .map((t) => ({
         trackKey: String(t.trackId),
         title: t.trackName,
         artist: t.artistName,
-        artwork: (t.artworkUrl100 || '').replace('100x100', '300x300'),
-        previewUrl: t.previewUrl,
+        artwork: secure((t.artworkUrl100 || '').replace('100x100', '300x300')),
+        previewUrl: secure(t.previewUrl),
       }));
 
     searchCache.set(key, { at: Date.now(), data });
@@ -347,6 +353,15 @@ io.on('connection', (socket) => {
     if (!r || r.phase !== 'PICKING') return;
     if (!track?.previewUrl || !track?.trackKey) return fail('Morceau invalide');
 
+    // Le client renvoie l'objet piste : on ne le croit pas sur parole. Sans
+    // ce controle, n'importe qui pourrait faire pointer la lecture ou les
+    // pochettes des autres joueurs vers l'URL de son choix.
+    const okAudio = /^https:\/\/[\w.-]+\.apple\.com\//.test(track.previewUrl);
+    const okImage = !track.artwork || /^https:\/\/[\w.-]+\.mzstatic\.com\//.test(track.artwork);
+    if (!okAudio || !okImage) return fail('Morceau invalide');
+
+    const clean = (s) => String(s ?? '').slice(0, 200);
+
     const mine = r.submissions.filter((s) => s.ownerIds.includes(playerId));
     if (mine.length >= CONFIG.maxTracks) return fail(`Maximum ${CONFIG.maxTracks} morceaux`);
     if (mine.some((s) => s.trackKey === track.trackKey)) return fail('Tu as déjà choisi ce morceau');
@@ -357,11 +372,11 @@ io.on('connection', (socket) => {
     } else {
       r.submissions.push({
         id: uid(),
-        trackKey: track.trackKey,
-        title: track.title,
-        artist: track.artist,
-        artwork: track.artwork,
-        previewUrl: track.previewUrl,
+        trackKey: clean(track.trackKey),
+        title: clean(track.title),
+        artist: clean(track.artist),
+        artwork: clean(track.artwork),
+        previewUrl: clean(track.previewUrl),
         ownerIds: [playerId],
       });
     }

@@ -29,7 +29,7 @@ const until = async (fn, l, ms = 6000) => {
   await until(() => a.state?.phase === 'PICKING', 'selection');
   for (const cl of [a, b, c])
     for (let i = 0; i < 3; i++)
-      cl.s.emit('track:submit', { trackKey: `${cl.pseudo}${i}`, title: `T${cl.pseudo}${i}`, artist: 'A', artwork: '', previewUrl: 'http://x.mp3' });
+      cl.s.emit('track:submit', { trackKey: `${cl.pseudo}${i}`, title: `T${cl.pseudo}${i}`, artist: 'A', artwork: '', previewUrl: 'https://audio-ssl.itunes.apple.com/x/t.m4a' });
   await until(() => a.state?.players.every((p) => p.trackCount === 3), 'selections completes');
   [a, b, c].forEach((cl) => cl.s.emit('player:ready', { ready: true }));
   await until(() => a.state?.canStart === true, 'tout le monde pret');

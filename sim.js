@@ -5,14 +5,14 @@ import { io } from 'socket.io-client';
 
 const URL = 'http://localhost:3000';
 const PSEUDOS = ['Alice', 'Bob', 'Cook'];
-const SHARED = { trackKey: '999', title: 'Morceau partagé', artist: 'X', artwork: '', previewUrl: 'http://x/9.mp3' };
+const SHARED = { trackKey: '999', title: 'Morceau partagé', artist: 'X', artwork: '', previewUrl: 'https://audio-ssl.itunes.apple.com/x/9.m4a' };
 
 const fakeTrack = (who, i) => ({
   trackKey: `${who}-${i}`,
   title: `Titre ${who}${i}`,
   artist: `Artiste ${who}`,
   artwork: '',
-  previewUrl: `http://x/${who}${i}.mp3`,
+  previewUrl: `https://audio-ssl.itunes.apple.com/x/${who}${i}.m4a`,
 });
 
 const problems = [];
@@ -28,7 +28,7 @@ function makeClient(idx) {
   const s = io(URL, { transports: ['websocket'] });
   const c = { s, idx, pseudo: PSEUDOS[idx], id: null, state: null };
 
-  const EXPECTED = [/déjà choisi ce morceau/, /^En attente de /];
+  const EXPECTED = [/déjà choisi ce morceau/, /^En attente de /, /^Morceau invalide$/];
   s.on('error:msg', (m) => { if (!EXPECTED.some((re) => re.test(m))) problems.push(`[${c.pseudo}] erreur serveur : ${m}`); });
   s.on('room:joined', ({ code, playerId }) => { c.id = playerId; if (idx === 0) roomCode = code; });
 
@@ -99,6 +99,12 @@ const until = async (fn, label, ms = 5000) => {
   a.s.emit('track:submit', SHARED);
   await wait(100);
   check(a.state.mySubmissions.length === 3, 'un joueur a pu soumettre deux fois le meme morceau');
+
+  // Une URL qui ne vient pas d'Apple doit etre refusee
+  const avantPirate = a.state.mySubmissions.length;
+  a.s.emit('track:submit', { trackKey: 'pirate', title: 'X', artist: 'X', artwork: '', previewUrl: 'https://evil.example.com/a.mp3' });
+  await wait(120);
+  check(a.state.mySubmissions.length === avantPirate, 'une URL arbitraire a ete acceptee comme morceau');
 
   // Personne n'est pret : l'hote ne doit pas pouvoir demarrer
   check(a.state.canStart === false, "l'hote peut demarrer alors que personne n'est pret");
