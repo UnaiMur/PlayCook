@@ -53,10 +53,24 @@ async function playThrough(host, all) {
 }
 
 (async () => {
-  const a = mk('Alice'); a.s.emit('room:create', { pseudo: 'Alice' });
+  const a = mk('Alice'); a.s.emit('room:create', { pseudo: 'Alice', gameId: 'blindtest' });
   await until(() => a.code, 'creation');
   const b = mk('Bob'); b.s.emit('room:join', { code: a.code, pseudo: 'Bob' });
   await until(() => a.state?.players.length === 2, '2 joueurs');
+
+  // --- le catalogue est lisible AVANT d'avoir un salon (menu principal) ----
+  const r = await fetch(`${URL}/api/games`);
+  check(r.ok, '/api/games ne repond pas');
+  const menu = await r.json();
+  check(Array.isArray(menu) && menu.length >= 1, 'le menu principal ne liste aucun jeu');
+  check(
+    menu.every((g) => g.id && g.name && g.icon && Array.isArray(g.rules) && g.minPlayers),
+    'une vignette du menu est incomplete (id, nom, icone, regles, nb de joueurs)'
+  );
+  check(
+    menu.find((g) => g.id === 'blindtest')?.rules.length >= 2,
+    'le blind test n\'expose pas ses regles au menu'
+  );
 
   // --- le salon decrit le catalogue ---------------------------------------
   check(a.state.phase === 'LOBBY', 'le salon ne demarre pas en LOBBY');

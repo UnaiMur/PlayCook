@@ -167,24 +167,42 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 .ranking li { font-size: 16px; }
 .ranking li:first-child { border-color: var(--accent); }
 
-/* --- plateforme : choix du jeu dans le salon ----------------------------- */
+/* --- plateforme : vignettes de jeu (menu principal et salon) -------------- */
 .picker { display: grid; gap: 10px; margin-bottom: 20px; }
 .picker .card {
-  display: block;
-  width: 100%;
-  text-align: left;
   padding: 14px 16px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--text);
   cursor: pointer;
+  transition: border-color .15s;
 }
-.picker .card:disabled { cursor: default; opacity: .75; }
-.picker .card.chosen { border-color: var(--accent); }
-.picker .card strong { display: block; font-size: 15px; }
-.picker .card .tagline { display: block; color: var(--muted); font-size: 13px; margin: 2px 0 4px; }
-.picker .card .meta { color: var(--muted); font-size: 12px; }
+.picker .card:hover,
+.picker .card:focus-visible { border-color: var(--accent); outline: none; }
+/* Non-hote : la vignette reste lisible mais n'invite pas au clic. */
+.picker .card.locked { cursor: default; opacity: .7; }
+.picker .card.locked:hover { border-color: var(--line); }
+.picker .card.chosen { border-color: var(--accent); opacity: 1; }
+
+.cardHead { display: flex; align-items: flex-start; gap: 12px; }
+.cardHead .icon { font-size: 22px; line-height: 1.2; }
+.cardText strong { display: block; font-size: 15px; }
+.cardText .tagline { display: block; color: var(--muted); font-size: 13px; margin: 2px 0 4px; }
+.cardText .meta { color: var(--muted); font-size: 12px; }
+
+.rules { margin-top: 10px; cursor: default; }
+.rules summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  list-style: none;
+}
+.rules summary::-webkit-details-marker { display: none; }
+.rules summary::before { content: '▸ '; }
+.rules[open] summary::before { content: '▾ '; }
+.rules ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+.rules li { margin-bottom: 3px; }
 
 .gameTitle { color: var(--muted); font-size: 14px; font-weight: 500; margin-bottom: 14px; }
 

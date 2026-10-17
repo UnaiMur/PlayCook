@@ -20,12 +20,16 @@ export const games = () => [...byId.values()];
 export const getGame = (id) => byId.get(id) || null;
 export const defaultGameId = () => modules[0].meta.id;
 
-// Ce que le salon affiche : juste de quoi choisir, jamais l'implementation.
+// Ce que le menu et le salon affichent : juste de quoi choisir, jamais
+// l'implementation. Sert aussi la route /api/games, consultee avant meme
+// d'avoir un salon.
 export const catalogue = () =>
   games().map((g) => ({
     id: g.meta.id,
     name: g.meta.name,
     tagline: g.meta.tagline || '',
+    rules: g.meta.rules || [],
+    icon: g.meta.icon || '🎲',
     minPlayers: g.meta.minPlayers,
     maxPlayers: g.meta.maxPlayers,
   }));

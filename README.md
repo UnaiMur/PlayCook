@@ -39,7 +39,7 @@ public/
   index.html                coquille : accueil, salon, #game-root, classement
   style.css
   core/
-    app.js                  client plateforme + chargement du module de jeu
+    app.js                  client plateforme : menu, salon, chargement du jeu
     dom.js, clock.js, sound.js
   games/blindtest/client.js interface du blind-test
 sim.js sim2.js sim3.js sim4.js   simulations sans navigateur
@@ -64,6 +64,8 @@ export const meta = {
   id: 'imposteur',
   name: "L'imposteur",
   tagline: 'Tout le monde a le même mot, sauf un.',
+  icon: '🕵️',                       // affiché sur la vignette du menu
+  rules: ['...', '...'],            // dépliable depuis la vignette
   minPlayers: 3,
   maxPlayers: 12,
 };
@@ -124,8 +126,15 @@ export default {
 
 **3. `core/registry.js`** — importer le module et l'ajouter au tableau.
 
-C'est tout : le salon affiche le nouveau jeu automatiquement, l'hôte peut le
-choisir, et le client charge `/games/<id>/client.js` à la volée.
+C'est tout : le jeu apparaît automatiquement dans le menu principal et dans le
+salon, l'hôte peut le choisir, et le client charge `/games/<id>/client.js` à la
+volée.
+
+**Le choix du jeu se fait à deux endroits.** À la création de la partie, le menu
+principal liste les jeux avec leur icône, leur résumé et leurs règles dépliables
+— il lit `GET /api/games`, la seule route consultable sans salon. Une fois dans
+le salon, l'hôte peut encore en changer tant que la partie n'a pas démarré ; les
+autres joueurs voient les mêmes vignettes, sans pouvoir cliquer.
 
 ## Réglages
 

@@ -14,8 +14,16 @@ import { routes as deezerRoutes, resolvePreview, PREVIEW_HOST } from './deezer.j
 
 export const meta = {
   id: 'blindtest',
-  name: 'Qui a mis ca ?',
+  name: 'Qui a mis ça ?',
   tagline: 'Chacun met ses morceaux, devinez qui a choisi quoi.',
+  icon: '🎵',
+  // Affichees dans le menu : de quoi comprendre le jeu sans l'avoir essaye.
+  rules: [
+    'Chacun choisit 3 à 5 morceaux en secret.',
+    'Les morceaux passent dans un ordre aléatoire, 30 secondes chacun.',
+    'À chaque morceau, devine qui l\'a mis : 100 points si tu trouves.',
+    'Si personne ne te démasque, tu gagnes 50 points par joueur piégé.',
+  ],
   minPlayers: 2,
   maxPlayers: 12,
   allowLateJoin: false,

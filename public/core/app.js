@@ -28,6 +28,7 @@ $('pseudo').value = localStorage.getItem('pseudo') || '';
 let state = null;
 let loaded = null;        // { id, module } du jeu monte
 let loading = null;       // id en cours de chargement (evite les doubles imports)
+let catalogue = [];       // liste des jeux, connue avant meme d'avoir un salon
 
 initVolume();
 listenForUnlock();
@@ -90,14 +91,81 @@ function unmountGame() {
 }
 
 // ---------------------------------------------------------------------------
-// Accueil
+// Vignette de jeu — la meme dans le menu principal et dans le salon
 // ---------------------------------------------------------------------------
-$('btnCreate').onclick = () => {
+function gameCard(g, { selected = false, pickable = true, onPick } = {}) {
+  const card = el(`div.card${selected ? '.chosen' : ''}${pickable ? '' : '.locked'}`, {
+    role: pickable ? 'button' : undefined,
+    tabindex: pickable ? '0' : undefined,
+    'aria-pressed': selected ? 'true' : undefined,
+  },
+  el('div.cardHead', {},
+    el('span.icon', { text: g.icon || '🎲' }),
+    el('div.cardText', {},
+      el('strong', { text: g.name }),
+      el('span.tagline', { text: g.tagline }),
+      el('span.meta', { text: `${g.minPlayers}–${g.maxPlayers} joueurs` }))));
+
+  if (g.rules?.length) {
+    const details = el('details.rules', {},
+      el('summary', { text: 'Règles' }),
+      el('ul', {}, ...g.rules.map((r) => el('li', { text: r }))));
+    // Deplier les regles ne doit pas valoir selection du jeu.
+    details.onclick = (e) => e.stopPropagation();
+    card.append(details);
+  }
+
+  if (pickable && onPick) {
+    card.onclick = () => onPick(g);
+    card.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(g); }
+    };
+  }
+  return card;
+}
+
+// ---------------------------------------------------------------------------
+// Accueil et menu principal
+// ---------------------------------------------------------------------------
+async function loadCatalogue() {
+  if (catalogue.length) return catalogue;
+  const r = await fetch('/api/games');
+  if (!r.ok) throw new Error('catalogue indisponible');
+  catalogue = await r.json();
+  return catalogue;
+}
+
+$('btnCreate').onclick = async () => {
   const pseudo = $('pseudo').value.trim();
   if (!pseudo) return toast('Choisis un pseudo');
   localStorage.setItem('pseudo', pseudo);
-  socket.emit('room:create', { pseudo, playerId });
+  try {
+    await loadCatalogue();
+  } catch {
+    // Sans catalogue on cree quand meme : le serveur retombe sur son jeu par
+    // defaut, et le salon permettra d'en changer.
+    toast('Liste des jeux indisponible');
+    return socket.emit('room:create', { pseudo, playerId });
+  }
+  renderMenu();
+  show('menu');
 };
+
+$('btnMenuBack').onclick = () => show('home');
+
+function renderMenu() {
+  const box = $('menuGames');
+  box.innerHTML = '';
+  for (const g of catalogue) {
+    box.append(gameCard(g, {
+      onPick: (jeu) => socket.emit('room:create', {
+        pseudo: $('pseudo').value.trim(),
+        playerId,
+        gameId: jeu.id,
+      }),
+    }));
+  }
+}
 
 $('btnJoin').onclick = () => {
   const pseudo = $('pseudo').value.trim();
@@ -154,21 +222,16 @@ function renderLobby(s) {
   list.innerHTML = '';
   for (const p of s.players) list.append(playerLine(p, p.ready ? '✓' : ''));
 
-  // Choix du jeu : visible par tous, cliquable par l'hote seulement.
+  // Choix du jeu : visible par tous, changeable par l'hote seulement.
+  catalogue = s.catalogue;      // le serveur fait foi une fois dans un salon
   const picker = $('gamePicker');
   picker.innerHTML = '';
   for (const g of s.catalogue) {
-    const chosen = s.game?.id === g.id;
-    picker.append(el(
-      `button.card${chosen ? '.chosen' : ''}`,
-      {
-        disabled: !s.youAreHost && !chosen,
-        onclick: () => socket.emit('lobby:select', { gameId: g.id }),
-      },
-      el('strong', { text: g.name }),
-      el('span.tagline', { text: g.tagline }),
-      el('span.meta', { text: `${g.minPlayers}–${g.maxPlayers} joueurs` })
-    ));
+    picker.append(gameCard(g, {
+      selected: s.game?.id === g.id,
+      pickable: s.youAreHost,
+      onPick: (jeu) => socket.emit('lobby:select', { gameId: jeu.id }),
+    }));
   }
 
   $('btnStart').style.display = s.youAreHost ? 'block' : 'none';
