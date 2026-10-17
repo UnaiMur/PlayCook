@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Qui a mis ça ?</title>
+<title>PlayCook</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
-  <h1>Qui écoute ça&nbsp;?</h1>
+  <h1>PlayCook</h1>
   <div class="hright">
     <label class="vol" id="volBox" title="Volume">
       <span id="volIcon">🔊</span>
@@ -21,7 +21,7 @@
 
 <main>
 
-  <!-- ACCUEIL -->
+  <!-- ACCUEIL — plateforme -->
   <section id="screen-home" class="screen">
     <input id="pseudo" placeholder="Ton pseudo" maxlength="16" autocomplete="off">
     <button id="btnCreate" class="primary">Créer une partie</button>
@@ -30,54 +30,29 @@
     <button id="btnJoin">Rejoindre</button>
   </section>
 
-  <!-- SALON -->
+  <!-- SALON — plateforme : joueurs + choix du jeu -->
   <section id="screen-lobby" class="screen">
     <h2>Salon</h2>
     <p class="hint">Partage le code <strong id="lobbyCode"></strong> avec les autres joueurs.</p>
     <ul id="lobbyPlayers" class="players"></ul>
-    <button id="btnPicking" class="primary">Lancer la sélection</button>
+    <h3>Jeu</h3>
+    <div id="gamePicker" class="picker"></div>
+    <button id="btnStart" class="primary">Démarrer</button>
+    <p class="hint" id="lobbyWait"></p>
   </section>
 
-  <!-- PHASE 1 : SELECTION -->
-  <section id="screen-picking" class="screen">
-    <h2>Choisis tes morceaux</h2>
-    <p class="hint" id="pickHint"></p>
-    <input id="search" placeholder="Titre ou artiste, puis Entrée…" autocomplete="off">
-    <ul id="results" class="results"></ul>
-    <h3>Ta sélection</h3>
-    <ul id="mine" class="mine"></ul>
-    <ul id="pickPlayers" class="players"></ul>
-    <button id="btnReady">Je suis prêt</button>
-    <button id="btnStart" class="primary">Démarrer la partie</button>
+  <!-- PARTIE — le module de jeu remplit #game-root -->
+  <section id="screen-game" class="screen">
+    <h2 class="gameTitle" id="gameTitle"></h2>
+    <div id="game-root"></div>
   </section>
 
-  <!-- PHASE 2 : ECOUTE ET VOTE -->
-  <section id="screen-playing" class="screen">
-    <p class="hint" id="roundCounter"></p>
-    <img id="art" class="art" alt="">
-    <h2 id="trackTitle"></h2>
-    <p class="artist" id="trackArtist"></p>
-    <div class="bar"><div id="barFill"></div></div>
-    <p class="hint" id="voteStatus"></p>
-    <div id="suspects" class="suspects"></div>
-  </section>
-
-  <!-- REVELATION -->
-  <section id="screen-reveal" class="screen">
-    <img id="revealArt" class="art" alt="">
-    <h2 id="revealTitle"></h2>
-    <p class="owner" id="revealOwner"></p>
-    <ul id="revealVotes" class="votes"></ul>
-    <h3>Points</h3>
-    <ul id="revealScores" class="votes"></ul>
-    <p class="hint" id="revealWait"></p>
-    <button id="btnSkip">Suivant</button>
-  </section>
-
-  <!-- CLASSEMENT -->
+  <!-- CLASSEMENT — plateforme -->
   <section id="screen-scores" class="screen">
     <h2>Classement final</h2>
     <ol id="ranking" class="ranking"></ol>
+    <button id="btnBack" class="primary">Retour au salon</button>
+    <p class="hint" id="scoresWait"></p>
   </section>
 
 </main>
@@ -85,6 +60,6 @@
 <div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="app.js"></script>
+<script type="module" src="/core/app.js"></script>
 </body>
 </html>

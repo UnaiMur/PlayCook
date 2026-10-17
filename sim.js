@@ -1,11 +1,17 @@
 // Simulation d'une partie complete a 3 joueurs, sans navigateur.
-// Verifie : lobby -> selection -> lecture -> votes -> revelation -> classement,
+// Verifie : salon -> selection -> lecture -> votes -> revelation -> classement,
 // le secret des proprietaires, le doublon joue deux fois, et les scores.
+//
+// Protocole plateforme : les actions de jeu passent toutes par 'game:action',
+// et les phases du jeu vivent dans state.view.phase.
 import { io } from 'socket.io-client';
 
 const URL = 'http://localhost:3000';
 const PSEUDOS = ['Alice', 'Bob', 'Cook'];
 const SHARED = { trackKey: '999', title: 'Morceau partagé', artist: 'X', artwork: '' };
+
+const act = (s, type, data) => s.emit('game:action', { type, data });
+const gphase = (st) => (st?.phase === 'GAME' ? st.view?.phase : st?.phase);
 
 const fakeTrack = (who, i) => ({
   trackKey: `${100 + i}${who.length}`,
@@ -36,19 +42,20 @@ function makeClient(idx) {
 
     // Aucun etat envoye au client ne doit contenir d'identite de proprietaire
     const raw = JSON.stringify(st);
-    if (st.phase === 'PLAYING' && /ownerIds/.test(raw)) leaks.push(`${c.pseudo} tour ${st.round.index}`);
+    if (gphase(st) === 'PLAYING' && /ownerIds/.test(raw)) leaks.push(`${c.pseudo} tour ${st.view.round.index}`);
 
-    if (st.phase === 'PLAYING') {
-      const tag = `${st.round.index}:${st.round.title}`;
+    if (gphase(st) === 'PLAYING') {
+      const r = st.view.round;
+      const tag = `${r.index}:${r.title}`;
       if (idx === 0 && !seenRounds.includes(tag)) seenRounds.push(tag);
-      if (st.round.canVote && !st.round.myVote) {
-        const pick = st.round.suspects[Math.floor(Math.random() * st.round.suspects.length)];
-        setTimeout(() => s.emit('vote:cast', { suspectId: pick.id }), 20);
+      if (r.canVote && !r.myVote) {
+        const pick = r.suspects[Math.floor(Math.random() * r.suspects.length)];
+        setTimeout(() => act(s, 'vote', { suspectId: pick.id }), 20);
       }
     }
 
-    if (st.phase === 'REVEAL' && st.youAreHost) {
-      setTimeout(() => s.emit('round:skip'), 30);
+    if (gphase(st) === 'REVEAL' && st.youAreHost) {
+      setTimeout(() => act(s, 'skip'), 30);
     }
 
     if (st.phase === 'SCORES' && idx === 0) finished?.(st);
@@ -75,28 +82,34 @@ const until = async (fn, label, ms = 5000) => {
   c.s.emit('room:join', { code: roomCode, pseudo: 'Cook' });
   await until(() => a.state?.players.length === 3, '3 joueurs dans le salon');
 
-  // Demarrage interdit a un non-hote
-  b.s.emit('phase:picking');
-  await wait(100);
-  check(a.state.phase === 'LOBBY', 'un non-hote a pu lancer la selection');
+  check(a.state.game?.id === 'blindtest', 'le blind test n\'est pas le jeu par defaut');
+  check(Array.isArray(a.state.catalogue) && a.state.catalogue.length >= 1, 'catalogue de jeux absent');
 
-  a.s.emit('phase:picking');
-  await until(() => a.state?.phase === 'PICKING', 'passage en selection');
+  // Demarrage interdit a un non-hote
+  b.s.emit('game:start');
+  await wait(100);
+  check(a.state.phase === 'LOBBY', 'un non-hote a pu lancer la partie');
+
+  a.s.emit('game:start');
+  await until(() => gphase(a.state) === 'PICKING', 'passage en selection');
 
   // Alice et Bob prennent le MEME morceau -> doit passer deux fois
-  a.s.emit('track:submit', SHARED);
-  b.s.emit('track:submit', SHARED);
-  for (const cl of clients) for (let i = 0; i < 2; i++) cl.s.emit('track:submit', fakeTrack(cl.pseudo, i));
-  c.s.emit('track:submit', fakeTrack('Cook', 9));
-  await until(() => a.state?.players.every((p) => p.trackCount >= 3), 'chacun a 3 morceaux');
+  act(a.s, 'submit', SHARED);
+  act(b.s, 'submit', SHARED);
+  for (const cl of clients) for (let i = 0; i < 2; i++) act(cl.s, 'submit', fakeTrack(cl.pseudo, i));
+  act(c.s, 'submit', fakeTrack('Cook', 9));
+  await until(
+    () => a.state?.players.every((p) => (a.state.view.counts[p.id] || 0) >= 3),
+    'chacun a 3 morceaux'
+  );
 
   // Chaque joueur ne voit QUE sa propre selection
-  check(a.state.mySubmissions.length === 3, 'Alice ne voit pas ses 3 morceaux');
+  check(a.state.view.mySubmissions.length === 3, 'Alice ne voit pas ses 3 morceaux');
   check(JSON.stringify(a.state).indexOf('TitreBob') === -1, 'Alice voit la selection de Bob');
   // ...mais avec l'identifiant, pour que le bouton d'ecoute puisse demander
   // une URL fraiche. L'URL signee elle-meme n'est jamais stockee ni diffusee.
   check(
-    a.state.mySubmissions.every((m) => /^\d+$/.test(String(m.trackKey))),
+    a.state.view.mySubmissions.every((m) => /^\d+$/.test(String(m.trackKey))),
     'trackKey absent de ma propre selection : impossible de reecouter'
   );
   check(
@@ -105,24 +118,24 @@ const until = async (fn, label, ms = 5000) => {
   );
 
   // Doublon refuse pour un meme joueur
-  a.s.emit('track:submit', SHARED);
+  act(a.s, 'submit', SHARED);
   await wait(100);
-  check(a.state.mySubmissions.length === 3, 'un joueur a pu soumettre deux fois le meme morceau');
+  check(a.state.view.mySubmissions.length === 3, 'un joueur a pu soumettre deux fois le meme morceau');
 
-  // Une URL qui ne vient pas d'Apple doit etre refusee
-  const avantPirate = a.state.mySubmissions.length;
-  a.s.emit('track:submit', { trackKey: 'pirate', title: 'X', artist: 'X', artwork: 'https://evil.example.com/a.jpg' });
+  // Une URL qui ne vient pas de la source attendue doit etre refusee
+  const avantPirate = a.state.view.mySubmissions.length;
+  act(a.s, 'submit', { trackKey: 'pirate', title: 'X', artist: 'X', artwork: 'https://evil.example.com/a.jpg' });
   await wait(120);
-  check(a.state.mySubmissions.length === avantPirate, 'une URL arbitraire a ete acceptee comme morceau');
+  check(a.state.view.mySubmissions.length === avantPirate, 'une URL arbitraire a ete acceptee comme morceau');
 
-  // Personne n'est pret : l'hote ne doit pas pouvoir demarrer
-  check(a.state.canStart === false, "l'hote peut demarrer alors que personne n'est pret");
-  a.s.emit('game:start');
+  // Personne n'est pret : l'hote ne doit pas pouvoir lancer les manches
+  check(a.state.view.canBegin === false, "l'hote peut demarrer alors que personne n'est pret");
+  act(a.s, 'begin');
   await wait(150);
-  check(a.state.phase === 'PICKING', 'la partie a demarre sans que tout le monde soit pret');
+  check(gphase(a.state) === 'PICKING', 'la partie a demarre sans que tout le monde soit pret');
 
   clients.forEach((cl) => cl.s.emit('player:ready', { ready: true }));
-  await until(() => a.state?.canStart === true, 'tout le monde pret');
+  await until(() => a.state?.view?.canBegin === true, 'tout le monde pret');
 
   finished = (st) => {
     console.log('\nClassement final');
@@ -148,7 +161,7 @@ const until = async (fn, label, ms = 5000) => {
     process.exit(problems.length ? 1 : 0);
   };
 
-  a.s.emit('game:start');
+  act(a.s, 'begin');
   await until(() => false, 'fin de partie', 25000);
   console.log('✗ la partie ne s\'est pas terminee');
   problems.forEach((p) => console.log('  - ' + p));

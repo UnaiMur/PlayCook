@@ -4,6 +4,9 @@ import { io } from 'socket.io-client';
 const URL = 'http://localhost:3000';
 const VOTE_MS = Number(process.env.VOTE_MS || 4000);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const act = (s, type, data) => s.emit('game:action', { type, data });
+const gphase = (st) => (st?.phase === 'GAME' ? st.view?.phase : st?.phase);
+
 const problems = [];
 const check = (ok, l) => { if (!ok) problems.push(l); };
 
@@ -15,11 +18,12 @@ const mk = (pseudo, isA) => {
   s.on('room:joined', ({ code }) => { c.code = code; });
   s.on('room:state', (st) => {
     c.state = st;
-    if (st.phase === 'PLAYING') {
-      if (isA && st.round.index === 1 && tPlaying === null) tPlaying = Date.now();
-      if (st.round.canVote && !st.round.myVote) s.emit('vote:cast', { suspectId: st.round.suspects[0].id });
+    if (gphase(st) === 'PLAYING') {
+      const r = st.view.round;
+      if (isA && r.index === 1 && tPlaying === null) tPlaying = Date.now();
+      if (r.canVote && !r.myVote) act(s, 'vote', { suspectId: r.suspects[0].id });
     }
-    if (st.phase === 'REVEAL' && isA && tReveal === null) { tReveal = Date.now(); reveal = st.reveal; }
+    if (gphase(st) === 'REVEAL' && isA && tReveal === null) { tReveal = Date.now(); reveal = st.view.reveal; }
   });
   return c;
 };
@@ -36,17 +40,17 @@ const until = async (fn, l, ms = 15000) => {
   const c = mk('Cook'); c.s.emit('room:join', { code: a.code, pseudo: 'Cook' });
   await until(() => a.state?.players.length === 3, '3 joueurs');
 
-  a.s.emit('phase:picking');
-  await until(() => a.state?.phase === 'PICKING', 'selection');
+  a.s.emit('game:start');
+  await until(() => gphase(a.state) === 'PICKING', 'selection');
   for (const cl of [a, b, c])
     for (let i = 0; i < 3; i++)
-      cl.s.emit('track:submit', { trackKey: `${200 + i}${cl.pseudo.length}`, title: `T${i}`, artist: 'A', artwork: '' });
-  await until(() => a.state?.players.every((p) => p.trackCount === 3), 'selections');
+      act(cl.s, 'submit', { trackKey: `${200 + i}${cl.pseudo.length}`, title: `T${i}`, artist: 'A', artwork: '' });
+  await until(() => a.state?.players.every((p) => a.state.view.counts[p.id] === 3), 'selections');
 
   [a, b, c].forEach((cl) => cl.s.emit('player:ready', { ready: true }));
-  await until(() => a.state?.canStart === true, 'tous prets');
+  await until(() => a.state?.view?.canBegin === true, 'tous prets');
 
-  a.s.emit('game:start');
+  act(a.s, 'begin');
   await until(() => tReveal !== null, 'premiere revelation');
 
   const duree = tReveal - tPlaying;

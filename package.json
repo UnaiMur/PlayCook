@@ -1,12 +1,16 @@
 {
-  "name": "blind-test-qui-a-mis-ca",
-  "version": "0.1.0",
+  "name": "playcook",
+  "version": "0.2.0",
   "type": "module",
-  "description": "Jeu multijoueur en ligne : devine qui a mis la musique",
+  "description": "Plateforme de mini-jeux multijoueurs en navigateur",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "sim": "node sim.js",
+    "sim2": "node sim2.js",
+    "sim3": "node sim3.js",
+    "sim4": "node sim4.js"
   },
   "engines": {
     "node": ">=20"
@@ -14,5 +18,8 @@
   "dependencies": {
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
   }
 }

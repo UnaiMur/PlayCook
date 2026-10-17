@@ -167,6 +167,32 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 .ranking li { font-size: 16px; }
 .ranking li:first-child { border-color: var(--accent); }
 
+/* --- plateforme : choix du jeu dans le salon ----------------------------- */
+.picker { display: grid; gap: 10px; margin-bottom: 20px; }
+.picker .card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  cursor: pointer;
+}
+.picker .card:disabled { cursor: default; opacity: .75; }
+.picker .card.chosen { border-color: var(--accent); }
+.picker .card strong { display: block; font-size: 15px; }
+.picker .card .tagline { display: block; color: var(--muted); font-size: 13px; margin: 2px 0 4px; }
+.picker .card .meta { color: var(--muted); font-size: 12px; }
+
+.gameTitle { color: var(--muted); font-size: 14px; font-weight: 500; margin-bottom: 14px; }
+
+/* --- panneaux internes d'un jeu ------------------------------------------ */
+/* Un module de jeu empile ses phases dans #game-root et n'en montre qu'une. */
+#game-root .panel { display: none; }
+#game-root .panel.active { display: block; }
+
 #toast {
   position: fixed;
   left: 50%;
