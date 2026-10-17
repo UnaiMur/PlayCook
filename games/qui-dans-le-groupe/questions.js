@@ -1,0 +1,50 @@
+// ---------------------------------------------------------------------------
+// Banque de questions par defaut.
+//
+// Elles servent a remplir la partie quand les joueurs n'en ecrivent pas assez.
+// Regle d'ecriture : ca doit pouvoir designer n'importe qui autour de la table
+// sans vexer personne. On vise le ridicule du quotidien, jamais le physique,
+// l'argent, la vie privee ou les histoires de couple.
+// ---------------------------------------------------------------------------
+export const QUESTIONS = [
+  'Qui rate son train alors qu\'il est déjà à la gare ?',
+  'Qui parle le plus à son animal de compagnie ?',
+  'Qui survivrait le moins longtemps sans téléphone ?',
+  'Qui met trois alarmes et se lève quand même en retard ?',
+  'Qui commence une série à 23h un dimanche soir ?',
+  'Qui a le plus d\'onglets ouverts en ce moment ?',
+  'Qui finirait par se perdre dans sa propre ville ?',
+  'Qui rirait le premier pendant un fou rire interdit ?',
+  'Qui oublie systématiquement de répondre aux messages ?',
+  'Qui lit les conditions d\'utilisation jusqu\'au bout ?',
+  'Qui ferait un détour de 20 minutes pour éviter un demi-tour ?',
+  'Qui se ferait avoir par le plus gros des pièges à touristes ?',
+  'Qui raconte la même anecdote pour la dixième fois ?',
+  'Qui organise tout le voyage puis oublie sa valise ?',
+  'Qui deviendrait célèbre pour une raison absurde ?',
+  'Qui garde des vieux câbles dont personne ne connaît l\'usage ?',
+  'Qui parle tout seul en cuisinant ?',
+  'Qui gagnerait un concours de mauvaise foi ?',
+  'Qui sait le mieux faire semblant d\'avoir compris ?',
+  'Qui serait le pire guide touristique ?',
+  'Qui achète un truc inutile juste parce qu\'il était en promo ?',
+  'Qui arrive une heure en avance par peur d\'être en retard ?',
+  'Qui a la playlist la plus incohérente ?',
+  'Qui craquerait en premier dans une émission de survie ?',
+  'Qui prend les choses le plus au sérieux pendant un jeu de société ?',
+  'Qui réserve une activité à 8h du matin en vacances ?',
+  'Qui a déjà cherché son téléphone avec son téléphone ?',
+  'Qui mangerait des pâtes trois soirs d\'affilée sans remarquer ?',
+  'Qui ferait la conversation à un inconnu dans un ascenseur ?',
+  'Qui range en poussant tout dans un seul tiroir ?',
+  'Qui dit « je pars dans cinq minutes » et part dans une heure ?',
+  'Qui regarde la fin d\'un film avant de le commencer ?',
+  'Qui se souvient le mieux des anniversaires ?',
+  'Qui serait le plus perdu sans GPS ?',
+  'Qui transformerait une sortie tranquille en expédition ?',
+  'Qui aurait le plus de mal à garder un secret ?',
+  'Qui refait trois fois le même trajet parce qu\'il a oublié quelque chose ?',
+  'Qui défendrait une opinion ridicule pendant une heure ?',
+  'Qui prend le plus de photos et n\'en regarde aucune ?',
+  'Qui se porte volontaire sans savoir pour quoi ?',
+];

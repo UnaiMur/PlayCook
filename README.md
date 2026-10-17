@@ -3,8 +3,12 @@
 Plateforme de mini-jeux à jouer entre amis dans le navigateur : un salon, un
 code à 4 lettres, et des jeux qui se branchent dessus.
 
-Premier jeu disponible : **« Qui a mis ça ? »**, un blind-test où chacun choisit
-3 à 5 morceaux, puis où il faut deviner qui a mis quoi.
+Deux jeux pour l'instant :
+
+- **Qui a mis ça ?** — un blind-test où chacun choisit 3 à 5 morceaux, puis où
+  il faut deviner qui a mis quoi.
+- **Qui dans le groupe ?** — une question par manche, chacun désigne un joueur,
+  la majorité l'emporte. Les points vont à ceux qui ont vu venir le groupe.
 
 ## Lancer
 
@@ -35,14 +39,18 @@ games/
   blindtest/
     server.js               règles du blind-test (PICKING / PLAYING / REVEAL)
     deezer.js               proxy Deezer : recherche et signature des extraits
+  qui-dans-le-groupe/
+    server.js               règles (WRITING / VOTING / REVEAL)
+    questions.js            banque de questions par défaut
 public/
   index.html                coquille : accueil, création, salon, #game-root, scores
   style.css
   core/
     app.js                  client plateforme : vitrine, salon, chargement du jeu
     dom.js, clock.js, sound.js
-  games/blindtest/client.js interface du blind-test
-sim.js sim2.js sim3.js sim4.js   simulations sans navigateur
+  games/blindtest/client.js            interface du blind-test
+  games/qui-dans-le-groupe/client.js   interface du second jeu
+sim.js … sim5.js            simulations sans navigateur
 ```
 
 **La plateforme possède trois phases** : `LOBBY` → `GAME` → `SCORES`. Elle tient
@@ -160,8 +168,18 @@ LEAD_MS=1500 VOTE_MS=20000 REVEAL_MS=6000 MERGE_DUPLICATES=true npm start
 | `POINTS_CORRECT` | 100 | points pour une bonne réponse |
 | `POINTS_FOOLED` | 50 | points au propriétaire par joueur piégé |
 
-Ces réglages appartiennent au blind-test : un nouveau jeu déclare les siens dans
-son propre fichier, avec les helpers de `core/env.js`.
+Ces réglages appartiennent au blind-test. Ceux de « Qui dans le groupe ? » :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `QDG_ROUNDS` | 8 | questions jouées dans une partie |
+| `QDG_CUSTOM_MAX` | 2 | questions qu'un joueur peut ajouter avant la partie |
+| `QDG_VOTE_MS` | 25000 | temps par question — la manche se ferme dès que tout le monde a voté |
+| `QDG_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
+| `QDG_POINTS` | 100 | points par vote conforme à la majorité |
+
+Chaque jeu déclare les siens dans son propre fichier, avec les helpers de
+`core/env.js` : la plateforme n'a pas à connaître la liste.
 
 ## Déployer
 
@@ -250,6 +268,7 @@ LEAD_MS=100 VOTE_MS=400 npm start &
 npm run sim          # partie complète à 3 joueurs : secret, doublons, scores
 npm run sim2         # reconnexion, déconnexion et reprise de l'hôte
 npm run sim4         # plateforme : catalogue, droits de l'hôte, enchaînement
+npm run sim5         # qui dans le groupe : écriture, majorité, points
 
 # sim3 vérifie la durée d'un tour : il lui faut la même fenêtre que le serveur
 LEAD_MS=100 VOTE_MS=4000 npm start &

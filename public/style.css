@@ -140,11 +140,14 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   background: var(--card);
 }
 .artist { color: var(--muted); margin: 0 0 18px; }
-#screen-playing h2, #screen-playing .artist, #screen-reveal h2 { text-align: center; }
-#screen-playing .hint, #screen-reveal .owner { text-align: center; }
+.center { text-align: center; }
 
 .bar { height: 4px; background: var(--card); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
-#barFill { height: 100%; width: 100%; background: var(--accent); transition: width .25s linear; }
+/* Le remplissage est le seul enfant de .bar : chaque jeu nomme son id comme il veut. */
+.bar > div { height: 100%; width: 100%; background: var(--accent); transition: width .25s linear; }
+
+/* Question posee au groupe : c'est elle qu'on lit en premier. */
+.question { font-size: 19px; line-height: 1.35; margin: 4px 0 16px; text-align: center; }
 
 .suspects { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .suspects button.picked { background: var(--accent); border-color: var(--accent); }
@@ -152,6 +155,7 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 .owner { font-size: 17px; margin-bottom: 18px; }
 .owner strong { color: var(--accent); }
 
+.votes li.picked { border-color: var(--accent); }
 .votes li, .ranking li {
   display: flex;
   justify-content: space-between;

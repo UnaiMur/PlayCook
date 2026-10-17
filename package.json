@@ -10,7 +10,8 @@
     "sim": "node sim.js",
     "sim2": "node sim2.js",
     "sim3": "node sim3.js",
-    "sim4": "node sim4.js"
+    "sim4": "node sim4.js",
+    "sim5": "node sim5.js"
   },
   "engines": {
     "node": ">=20"
