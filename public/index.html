@@ -21,21 +21,32 @@
 
 <main>
 
-  <!-- ACCUEIL — plateforme -->
+  <!-- ACCUEIL — vitrine : on choisit le jeu avant de créer la partie -->
   <section id="screen-home" class="screen">
-    <input id="pseudo" placeholder="Ton pseudo" maxlength="16" autocomplete="off">
-    <button id="btnCreate" class="primary">Créer une partie</button>
-    <div class="sep">ou</div>
-    <input id="joinCode" placeholder="Code à 4 lettres" maxlength="4" autocomplete="off" style="text-transform:uppercase">
-    <button id="btnJoin">Rejoindre</button>
+    <div class="hero">
+      <h2>Des mini-jeux à jouer entre amis</h2>
+      <p>Choisis un jeu, partage le code à 4 lettres, chacun joue depuis son
+         téléphone. Rien à installer, rien à créer comme compte.</p>
+    </div>
+
+    <h3>Les jeux</h3>
+    <div id="homeGames" class="picker"></div>
+
+    <h3>Rejoindre une partie</h3>
+    <p class="hint">Quelqu'un t'a donné un code ? C'est ici — c'est l'hôte qui choisit le jeu.</p>
+    <div class="joinRow">
+      <input id="joinCode" placeholder="Code" maxlength="4" autocomplete="off" style="text-transform:uppercase">
+      <input id="joinPseudo" placeholder="Ton pseudo" maxlength="16" autocomplete="off">
+      <button id="btnJoin">Rejoindre</button>
+    </div>
   </section>
 
-  <!-- MENU PRINCIPAL — choix du jeu avant de créer la partie -->
-  <section id="screen-menu" class="screen">
-    <h2>Choisis un jeu</h2>
-    <p class="hint">La partie sera créée avec ce jeu — tu pourras encore en changer depuis le salon.</p>
-    <div id="menuGames" class="picker"></div>
-    <button id="btnMenuBack">← Retour</button>
+  <!-- CRÉATION — le jeu est déjà choisi, il ne manque que le pseudo -->
+  <section id="screen-create" class="screen">
+    <div id="createGame" class="picker"></div>
+    <input id="createPseudo" placeholder="Ton pseudo" maxlength="16" autocomplete="off">
+    <button id="btnCreate" class="primary">Créer la partie</button>
+    <button id="btnCreateBack">← Choisir un autre jeu</button>
   </section>
 
   <!-- SALON — plateforme : joueurs + choix du jeu -->

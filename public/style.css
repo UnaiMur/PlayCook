@@ -167,7 +167,26 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 .ranking li { font-size: 16px; }
 .ranking li:first-child { border-color: var(--accent); }
 
-/* --- plateforme : vignettes de jeu (menu principal et salon) -------------- */
+/* --- accueil : vitrine ---------------------------------------------------- */
+.hero { margin-bottom: 28px; }
+.hero h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; }
+.hero p { color: var(--muted); font-size: 14px; margin: 0; max-width: 46ch; }
+
+/* Code court, pseudo extensible, bouton qui ne s'etire pas. */
+.joinRow { display: flex; gap: 8px; flex-wrap: wrap; }
+.joinRow #joinCode {
+  width: 92px;
+  flex: 0 0 auto;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 2px;
+  text-align: center;
+}
+.joinRow #joinPseudo { flex: 1 1 140px; width: auto; }
+.joinRow button { width: auto; flex: 0 0 auto; margin: 0; }
+
+#screen-create button + button { margin-top: 8px; }
+
+/* --- plateforme : vignettes de jeu (accueil, création et salon) ----------- */
 .picker { display: grid; gap: 10px; margin-bottom: 20px; }
 .picker .card {
   padding: 14px 16px;

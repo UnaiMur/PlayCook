@@ -36,10 +36,10 @@ games/
     server.js               règles du blind-test (PICKING / PLAYING / REVEAL)
     deezer.js               proxy Deezer : recherche et signature des extraits
 public/
-  index.html                coquille : accueil, salon, #game-root, classement
+  index.html                coquille : accueil, création, salon, #game-root, scores
   style.css
   core/
-    app.js                  client plateforme : menu, salon, chargement du jeu
+    app.js                  client plateforme : vitrine, salon, chargement du jeu
     dom.js, clock.js, sound.js
   games/blindtest/client.js interface du blind-test
 sim.js sim2.js sim3.js sim4.js   simulations sans navigateur
@@ -130,11 +130,17 @@ C'est tout : le jeu apparaît automatiquement dans le menu principal et dans le
 salon, l'hôte peut le choisir, et le client charge `/games/<id>/client.js` à la
 volée.
 
-**Le choix du jeu se fait à deux endroits.** À la création de la partie, le menu
-principal liste les jeux avec leur icône, leur résumé et leurs règles dépliables
-— il lit `GET /api/games`, la seule route consultable sans salon. Une fois dans
-le salon, l'hôte peut encore en changer tant que la partie n'a pas démarré ; les
-autres joueurs voient les mêmes vignettes, sans pouvoir cliquer.
+**Le choix du jeu précède la partie.** L'accueil est une vitrine : il présente
+PlayCook puis liste les jeux, chacun avec son icône, son résumé, son nombre de
+joueurs et ses règles dépliables. On clique sur un jeu, on donne son pseudo, et
+la partie est créée avec ce jeu. La liste vient de `GET /api/games`, la seule
+route consultable sans salon — la page d'accueil n'a pas besoin d'une partie
+pour s'afficher.
+
+Rejoindre se fait depuis le même écran, avec le code : pas de choix de jeu à
+faire, c'est celui de l'hôte. Et une fois dans le salon, l'hôte peut encore
+changer de jeu tant que rien n'a démarré ; les autres voient les mêmes
+vignettes, sans pouvoir cliquer.
 
 ## Réglages
 

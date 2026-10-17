@@ -23,12 +23,17 @@ if (!playerId) {
   playerId = Math.random().toString(36).slice(2, 10);
   localStorage.setItem('playerId', playerId);
 }
-$('pseudo').value = localStorage.getItem('pseudo') || '';
+// Le pseudo est demande a deux endroits (creer / rejoindre) : on preremplit les
+// deux et on garde le dernier saisi.
+const savedPseudo = localStorage.getItem('pseudo') || '';
+$('joinPseudo').value = savedPseudo;
+$('createPseudo').value = savedPseudo;
 
 let state = null;
 let loaded = null;        // { id, module } du jeu monte
 let loading = null;       // id en cours de chargement (evite les doubles imports)
 let catalogue = [];       // liste des jeux, connue avant meme d'avoir un salon
+let chosen = null;        // jeu selectionne sur l'accueil, en attente du pseudo
 
 initVolume();
 listenForUnlock();
@@ -125,56 +130,61 @@ function gameCard(g, { selected = false, pickable = true, onPick } = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Accueil et menu principal
+// Accueil : la vitrine des jeux. On choisit AVANT de creer quoi que ce soit —
+// le pseudo n'est demande qu'une fois le jeu retenu.
 // ---------------------------------------------------------------------------
 async function loadCatalogue() {
-  if (catalogue.length) return catalogue;
   const r = await fetch('/api/games');
   if (!r.ok) throw new Error('catalogue indisponible');
   catalogue = await r.json();
   return catalogue;
 }
 
-$('btnCreate').onclick = async () => {
-  const pseudo = $('pseudo').value.trim();
-  if (!pseudo) return toast('Choisis un pseudo');
-  localStorage.setItem('pseudo', pseudo);
-  try {
-    await loadCatalogue();
-  } catch {
-    // Sans catalogue on cree quand meme : le serveur retombe sur son jeu par
-    // defaut, et le salon permettra d'en changer.
-    toast('Liste des jeux indisponible');
-    return socket.emit('room:create', { pseudo, playerId });
-  }
-  renderMenu();
-  show('menu');
-};
-
-$('btnMenuBack').onclick = () => show('home');
-
-function renderMenu() {
-  const box = $('menuGames');
+function renderHome() {
+  const box = $('homeGames');
   box.innerHTML = '';
-  for (const g of catalogue) {
-    box.append(gameCard(g, {
-      onPick: (jeu) => socket.emit('room:create', {
-        pseudo: $('pseudo').value.trim(),
-        playerId,
-        gameId: jeu.id,
-      }),
-    }));
+  if (!catalogue.length) {
+    // Le serveur n'a pas repondu : on laisse quand meme creer une partie, il
+    // retombera sur son jeu par defaut et le salon permettra d'en changer.
+    box.append(el('p.hint', { text: 'Liste des jeux indisponible pour le moment.' }));
+    box.append(el('button', { text: 'Créer une partie quand même', onclick: () => openCreate(null) }));
+    return;
   }
+  for (const g of catalogue) box.append(gameCard(g, { onPick: openCreate }));
 }
 
+function openCreate(game) {
+  chosen = game;
+  const box = $('createGame');
+  box.innerHTML = '';
+  // On rappelle le jeu retenu, regles comprises : plus besoin de revenir en
+  // arriere pour verifier dans quoi on s'engage.
+  if (game) box.append(gameCard(game, { pickable: false }));
+  $('createPseudo').value = $('joinPseudo').value.trim() || $('createPseudo').value;
+  show('create');
+  $('createPseudo').focus();
+}
+
+$('btnCreateBack').onclick = () => show('home');
+
+$('btnCreate').onclick = () => {
+  const pseudo = $('createPseudo').value.trim();
+  if (!pseudo) return toast('Choisis un pseudo');
+  localStorage.setItem('pseudo', pseudo);
+  socket.emit('room:create', { pseudo, playerId, gameId: chosen?.id });
+};
+
 $('btnJoin').onclick = () => {
-  const pseudo = $('pseudo').value.trim();
+  const pseudo = $('joinPseudo').value.trim();
   const code = $('joinCode').value.trim().toUpperCase();
   if (!pseudo) return toast('Choisis un pseudo');
   if (code.length !== 4) return toast('Code à 4 lettres');
   localStorage.setItem('pseudo', pseudo);
   socket.emit('room:join', { code, pseudo, playerId });
 };
+
+// La vitrine se remplit des l'ouverture de la page : elle ne depend d'aucun salon.
+loadCatalogue().catch(() => {}).finally(renderHome);
 
 $('btnStart').onclick = () => socket.emit('game:start');
 $('btnBack').onclick = () => socket.emit('lobby:return');
