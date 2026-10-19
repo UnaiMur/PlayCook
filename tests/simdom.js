@@ -5,7 +5,7 @@
 // Les simulations sim*.js couvrent le serveur ; celle-ci couvre le client, le
 // seul endroit ou une faute de frappe ne se voit qu'a l'execution.
 //
-//   npm install --no-save jsdom && node simdom.js
+//   npm install --no-save jsdom && npm run simdom
 import { JSDOM } from 'jsdom';
 import { readFileSync } from 'fs';
 import { pathToFileURL } from 'url';
@@ -14,15 +14,16 @@ const problems = [];
 const check = (ok, l) => { if (!ok) problems.push(l); };
 
 const html = readFileSync('public/index.html', 'utf8');
+const POSTER = 'https://image.tmdb.org/t/p/w342/abc.jpg';
 
 // Etats de vue representatifs, un par phase, dans l'ordre de la partie.
 const SCENARIOS = {
   blindtest: [
-    { phase: 'PICKING', config: { minTracks: 3, maxTracks: 5 }, counts: {},
-      mySubmissions: [{ id: 's1', trackKey: '123', title: 'Titre', artist: 'Artiste', artwork: '' }],
+    { phase: 'PICKING', config: { minItems: 3, maxItems: 5 }, counts: {},
+      mySubmissions: [{ id: 's1', trackKey: '123', title: 'Titre', artist: 'Artiste', artwork: '', previewUrl: null }],
       myReady: false, canBegin: false, waitingFor: ['Bob'] },
     { phase: 'PLAYING', config: {}, counts: {},
-      round: { index: 1, total: 3, title: 'Titre', artist: 'Artiste', artwork: '',
+      round: { index: 1, total: 3, trackKey: '123', title: 'Titre', artist: 'Artiste', artwork: '',
         previewUrl: null, startAt: Date.now(), voteEndsAt: Date.now() + 5000,
         canVote: true, myVote: null, votedCount: 0, expectedVotes: 2,
         suspects: [{ id: 'b', pseudo: 'Bob' }] } },
@@ -31,6 +32,24 @@ const SCENARIOS = {
         owners: ['Bob'], votes: [{ voterPseudo: 'Alice', suspectPseudo: 'Bob', correct: true }],
         deltas: {}, scores: [{ pseudo: 'Alice', score: 100, delta: 100 }], isLast: false } },
   ],
+
+  'qui-regarde-ca': [
+    { phase: 'PICKING', config: { minItems: 3, maxItems: 5 }, counts: {},
+      mySubmissions: [{ id: 's1', tmdbId: '1396', kind: 'série', title: 'Breaking Bad', year: '2008', poster: POSTER }],
+      myReady: false, canBegin: false, waitingFor: ['Bob'] },
+    { phase: 'PLAYING', config: {}, counts: {},
+      round: { index: 1, total: 3, tmdbId: '1396', kind: 'série', title: 'Breaking Bad', year: '2008',
+        poster: POSTER, startAt: Date.now(), voteEndsAt: Date.now() + 5000,
+        canVote: true, myVote: null, votedCount: 0, expectedVotes: 2,
+        suspects: [{ id: 'b', pseudo: 'Bob' }] } },
+    // Sans affiche : le gabarit de remplacement doit tenir aussi.
+    { phase: 'REVEAL', config: {}, counts: {},
+      reveal: { index: 1, total: 3, tmdbId: '1396', kind: 'film', title: 'Sans affiche', year: '',
+        poster: '', owners: ['Bob'],
+        votes: [{ voterPseudo: 'Alice', suspectPseudo: 'Bob', correct: false }],
+        deltas: {}, scores: [{ pseudo: 'Alice', score: 0, delta: 0 }], isLast: true } },
+  ],
+
   'qui-dans-le-groupe': [
     { phase: 'WRITING', config: { customMax: 2, rounds: 8 }, counts: {},
       myQuestions: [{ id: 'q1', text: 'Qui arrive toujours en retard ?' }],
@@ -90,7 +109,7 @@ for (const [id, phases] of Object.entries(SCENARIOS)) {
   for (const k of ['document', 'Node', 'HTMLElement']) {
     globalThis[k] = dom.window[k] ?? globalThis[k];
   }
-  globalThis.fetch = async () => ({ ok: true, json: async () => ({}) });
+  globalThis.fetch = async () => ({ ok: true, json: async () => ([]) });
 
   let mod;
   try {
@@ -126,7 +145,21 @@ for (const [id, phases] of Object.entries(SCENARIOS)) {
       `${id} / ${view.phase} : ${visibles.length} panneau(x) affiche(s) au lieu d'un seul`);
     const texte = visibles[0]?.textContent.trim() || '';
     check(texte.length > 0, `${id} / ${view.phase} : le panneau affiche est vide`);
+
+    // Le titre de l'element doit arriver jusqu'a l'ecran : c'est tout l'objet
+    // du jeu, et une erreur de nom de champ ne se verrait pas autrement.
+    const attendu = view.round?.title || view.reveal?.title || view.round?.text;
+    if (attendu) {
+      check(texte.includes(attendu),
+        `${id} / ${view.phase} : « ${attendu} » n'apparait pas a l'ecran`);
+    }
   }
+
+  // Un deuxieme rendu de la meme manche ne doit pas empiler les elements.
+  const avant = root.querySelectorAll('img, .noart').length;
+  try { mod.render(phases[1], api); } catch { /* deja signale */ }
+  const apres = root.querySelectorAll('img, .noart').length;
+  check(avant === apres, `${id} : un rendu repete duplique le contenu de la manche`);
 
   try {
     mod.unmount();

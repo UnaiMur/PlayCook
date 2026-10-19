@@ -3,10 +3,12 @@
 Plateforme de mini-jeux à jouer entre amis dans le navigateur : un salon, un
 code à 4 lettres, et des jeux qui se branchent dessus.
 
-Deux jeux pour l'instant :
+Trois jeux pour l'instant :
 
 - **Qui a mis ça ?** — un blind-test où chacun choisit 3 à 5 morceaux, puis où
   il faut deviner qui a mis quoi.
+- **Qui regarde ça ?** — le même, en séries et en films : chacun met 3 à 5
+  titres, affiche à l'écran, et on devine qui regarde quoi.
 - **Qui dans le groupe ?** — une question par manche, chacun désigne un joueur,
   la majorité l'emporte. Les points vont à ceux qui ont vu venir le groupe.
 
@@ -23,6 +25,24 @@ Le premier joueur crée la partie, les autres rejoignent avec le code à 4 lettr
 Pour jouer avec des gens qui ne sont pas sur ton réseau, expose le port 3000 :
 `npx localtunnel --port 3000`, ngrok, ou un déploiement sur Render / Fly.io.
 
+## Clé TMDB (pour « Qui regarde ça ? »)
+
+Ce jeu cherche les séries et les films chez [TMDB](https://www.themoviedb.org),
+qui demande une clé — gratuite, mais il faut un compte :
+
+1. créer un compte sur themoviedb.org, puis **Paramètres → API** ;
+2. demander une clé (usage personnel, le formulaire est court) ;
+3. la passer au serveur dans `TMDB_API_KEY` (clé v3) ou `TMDB_TOKEN` (jeton v4
+   « Read Access ») — sur Render, dans **Environment**.
+
+```bash
+TMDB_API_KEY=xxxxxxxx npm start
+```
+
+Sans clé, les deux autres jeux fonctionnent normalement ; « Qui regarde ça ? »
+reste visible mais sa recherche répond « clé TMDB absente », et le serveur le
+signale au démarrage.
+
 ## Architecture
 
 Le découpage sépare **ce qui est commun à tous les jeux** de **ce qui est propre
@@ -36,9 +56,14 @@ core/
   registry.js               catalogue : la seule liste des jeux installés
   env.js                    lecture des variables d'environnement
 games/
+  _shared/
+    devine-qui.js           moteur « chacun soumet, on devine qui »
   blindtest/
-    server.js               règles du blind-test (PICKING / PLAYING / REVEAL)
+    server.js               ce qui est propre à la musique
     deezer.js               proxy Deezer : recherche et signature des extraits
+  qui-regarde-ca/
+    server.js               ce qui est propre aux séries et aux films
+    tmdb.js                 proxy TMDB : recherche films + séries, affiches
   qui-dans-le-groupe/
     server.js               règles (WRITING / VOTING / REVEAL)
     questions.js            banque de questions par défaut
@@ -48,9 +73,13 @@ public/
   core/
     app.js                  client plateforme : vitrine, salon, chargement du jeu
     dom.js, clock.js, sound.js
-  games/blindtest/client.js            interface du blind-test
-  games/qui-dans-le-groupe/client.js   interface du second jeu
-sim.js … sim5.js            simulations sans navigateur
+  games/_shared/devine-qui.js          moteur commun, côté écran
+  games/blindtest/client.js            pré-écoute + audio synchronisé
+  games/qui-regarde-ca/client.js       affiches
+  games/qui-dans-le-groupe/client.js   questions et votes
+tests/
+  sim.js … sim6.js          simulations de parties, sans navigateur
+  simdom.js                 monte les clients dans un DOM headless
 ```
 
 **La plateforme possède trois phases** : `LOBBY` → `GAME` → `SCORES`. Elle tient
@@ -60,6 +89,22 @@ synchro d'horloge et le son. Elle ne sait rien des règles.
 **Un jeu possède ses propres phases**, à l'intérieur de `GAME`. Il reçoit un
 contexte (`ctx`) et ne touche jamais aux sockets : il lit l'état, le modifie,
 appelle `ctx.update()`, et la plateforme diffuse à chacun la vue qui lui revient.
+
+**Deux jeux partagent le même moteur.** « Qui a mis ça ? » et « Qui regarde
+ça ? » sont la même mécanique — chacun soumet en secret, puis on devine qui a
+choisi quoi — sur deux sources différentes. Elle vit dans
+`games/_shared/devine-qui.js` (et son pendant écran dans
+`public/games/_shared/`). Chaque jeu ne déclare que ses différences :
+
+| | Qui a mis ça ? | Qui regarde ça ? |
+|---|---|---|
+| Source | Deezer | TMDB |
+| Élément | un morceau | une série ou un film |
+| Avant la manche | resigner l'URL d'extrait | rien |
+| Pendant la manche | 30 s d'écoute synchronisée | 20 s pour regarder l'affiche |
+
+Résultat : 114 lignes pour le blind-test et 108 pour les séries, au lieu de
+331 lignes dupliquées. Un bug de décompte corrigé une fois l'est pour les deux.
 
 ## Ajouter un jeu
 
@@ -134,6 +179,11 @@ export default {
 
 **3. `core/registry.js`** — importer le module et l'ajouter au tableau.
 
+**Raccourci** : si le jeu est du type « chacun soumet des trucs, on devine qui
+les a mis », n'écris pas tout ça — reprends `games/_shared/devine-qui.js` comme
+le font les deux premiers jeux. Tu ne déclares alors que la source, la
+validation d'un élément et ce qu'on en affiche.
+
 C'est tout : le jeu apparaît automatiquement dans le menu principal et dans le
 salon, l'hôte peut le choisir, et le client charge `/games/<id>/client.js` à la
 volée.
@@ -168,7 +218,19 @@ LEAD_MS=1500 VOTE_MS=20000 REVEAL_MS=6000 MERGE_DUPLICATES=true npm start
 | `POINTS_CORRECT` | 100 | points pour une bonne réponse |
 | `POINTS_FOOLED` | 50 | points au propriétaire par joueur piégé |
 
-Ces réglages appartiennent au blind-test. Ceux de « Qui dans le groupe ? » :
+Ceux de « Qui regarde ça ? » :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `TMDB_API_KEY` / `TMDB_TOKEN` | — | clé TMDB, voir plus haut |
+| `TMDB_LANG` | `fr-FR` | langue des titres et des affiches |
+| `QRC_MIN_ITEMS` / `QRC_MAX_ITEMS` | 3 / 5 | titres par joueur |
+| `QRC_MERGE_DUPLICATES` | `false` | même logique que `MERGE_DUPLICATES` |
+| `QRC_ROUND_MS` | 20000 | temps d'affichage d'un titre |
+| `QRC_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
+| `QRC_POINTS_CORRECT` / `QRC_POINTS_FOOLED` | 100 / 50 | points |
+
+Ceux de « Qui dans le groupe ? » :
 
 | Variable | Défaut | Rôle |
 |---|---|---|
@@ -261,7 +323,10 @@ socket. Un F5 en pleine partie retrouve sa place et son score.
 
 ## Tests
 
-Quatre simulations sans navigateur, à lancer contre un serveur déjà démarré :
+Les simulations de parties ont besoin d'un serveur déjà démarré ; `simdom`,
+non. `sim6` joue une partie entière **sans clé TMDB** : le serveur valide ce
+que le client lui envoie sans rappeler l'API, donc seule la recherche a besoin
+d'une clé.
 
 ```bash
 LEAD_MS=100 VOTE_MS=400 npm start &
@@ -269,6 +334,12 @@ npm run sim          # partie complète à 3 joueurs : secret, doublons, scores
 npm run sim2         # reconnexion, déconnexion et reprise de l'hôte
 npm run sim4         # plateforme : catalogue, droits de l'hôte, enchaînement
 npm run sim5         # qui dans le groupe : écriture, majorité, points
+npm run sim6         # qui regarde ça : validation, secret, partie complète
+
+# Les clients, dans un DOM headless — le seul test qui attrape un module
+# cassé ou absent, ce que les simulations serveur ne voient pas.
+npm install --no-save jsdom
+npm run simdom
 
 # sim3 vérifie la durée d'un tour : il lui faut la même fenêtre que le serveur
 LEAD_MS=100 VOTE_MS=4000 npm start &

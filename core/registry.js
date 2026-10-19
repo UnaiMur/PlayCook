@@ -5,9 +5,10 @@
 // l'importer ici. Rien d'autre a toucher dans le coeur.
 // ---------------------------------------------------------------------------
 import * as blindtest from '../games/blindtest/server.js';
+import * as quiRegardeCa from '../games/qui-regarde-ca/server.js';
 import * as quiDansLeGroupe from '../games/qui-dans-le-groupe/server.js';
 
-const modules = [blindtest, quiDansLeGroupe];
+const modules = [blindtest, quiRegardeCa, quiDansLeGroupe];
 
 const byId = new Map();
 for (const mod of modules) {

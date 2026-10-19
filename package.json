@@ -7,11 +7,13 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "sim": "node sim.js",
-    "sim2": "node sim2.js",
-    "sim3": "node sim3.js",
-    "sim4": "node sim4.js",
-    "sim5": "node sim5.js"
+    "sim": "node tests/sim.js",
+    "sim2": "node tests/sim2.js",
+    "sim3": "node tests/sim3.js",
+    "sim4": "node tests/sim4.js",
+    "sim5": "node tests/sim5.js",
+    "sim6": "node tests/sim6.js",
+    "simdom": "node tests/simdom.js"
   },
   "engines": {
     "node": ">=20"

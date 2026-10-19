@@ -17,7 +17,11 @@
 import { num } from '../../core/env.js';
 
 const API = 'https://api.deezer.com';
+// Extraits et pochettes sortent tous du CDN de Deezer. Deux constantes pour
+// deux usages : verifier une URL signee qu'on vient de recevoir de l'API, et
+// verifier une pochette que le client nous renvoie.
 export const PREVIEW_HOST = /^https:\/\/[\w.-]+\.dzcdn\.net\//;
+export const ARTWORK_HOST = PREVIEW_HOST;
 
 const searchCache = new Map();
 const previewCache = new Map();
