@@ -333,6 +333,188 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   .cell { width: 46px; height: 46px; font-size: 16px; }
 }
 
+/* === UNO ================================================================= */
+/* Les couleurs du jeu, volontairement un peu desaturees pour rester lisibles
+   sur le fond sombre de la plateforme. */
+:root {
+  --uno-rouge: #c6413c;
+  --uno-bleu:  #2f6fb5;
+  --uno-vert:  #2e8f5b;
+  --uno-jaune: #cf9f29;
+  --uno-noir:  #26242f;
+}
+.c-rouge { --teinte: var(--uno-rouge); }
+.c-bleu  { --teinte: var(--uno-bleu); }
+.c-vert  { --teinte: var(--uno-vert); }
+.c-jaune { --teinte: var(--uno-jaune); }
+.c-noir  { --teinte: var(--uno-noir); }
+
+/* --- une carte ----------------------------------------------------------- */
+.carte {
+  position: relative;
+  width: 58px;
+  height: 86px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: var(--teinte, var(--card));
+  border: 2px solid rgba(255, 255, 255, .22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+.carte .valeur { font-size: 24px; font-weight: 700; color: #fff; }
+/* L'image dessinee par l'utilisateur recouvre le dessin par-dessus. */
+.carte .face { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.carte.dos {
+  background: var(--uno-noir);
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 6px, transparent 6px 12px);
+}
+.carte.petite { width: 26px; height: 38px; border-width: 1px; }
+.carte.petite .valeur { font-size: 12px; }
+
+/* --- la table ------------------------------------------------------------ */
+.table {
+  position: relative;
+  height: 236px;
+  margin: 10px 0 14px;
+  border-radius: 50% / 42%;
+  background: radial-gradient(ellipse at center, #1d3a2c 0%, #16281f 70%, #12201a 100%);
+  border: 1px solid var(--line);
+}
+.sieges { position: absolute; inset: 0; }
+.centre {
+  position: absolute;
+  left: 50%; top: 62%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 12px;
+}
+.pile { position: relative; cursor: default; }
+.pile .compte {
+  position: absolute;
+  bottom: -18px; left: 0; right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+.pile.pioche.actif { cursor: pointer; }
+.pile.pioche.actif .carte { border-color: var(--accent); }
+
+/* En haut de la table : en bas, elle chevauchait le compteur de la pioche. */
+.couleurActive {
+  position: absolute;
+  left: 50%; top: 10px;
+  transform: translateX(-50%);
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--teinte, var(--card));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* --- les joueurs autour -------------------------------------------------- */
+.siege {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 66px;
+}
+.siege .nom {
+  font-size: 12px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.siege .compte { font-size: 11px; color: var(--muted); }
+.siege.actif .nom { color: var(--accent); font-weight: 600; }
+.siege.actif .dosPile .carte { border-color: var(--accent); }
+.siege.off { opacity: .4; }
+.dosPile { display: flex; justify-content: center; }
+
+.badgeUno {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--bad);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.badgeUno.denoncable { cursor: pointer; background: var(--accent); }
+
+/* --- ma main ------------------------------------------------------------- */
+.main {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 10px 2px 14px;
+  scrollbar-width: thin;
+}
+.main .carte { transition: transform .12s; }
+.main .carte.posable { cursor: pointer; }
+.main .carte.posable:hover { transform: translateY(-8px); }
+.main .carte.grisee { opacity: .42; }
+
+.actionsUno { display: flex; gap: 8px; flex-wrap: wrap; }
+.actionsUno button { width: auto; flex: 1 1 auto; }
+
+.journal { margin: 6px 0 2px; }
+.journal li { font-size: 12px; color: var(--muted); padding: 1px 0; text-align: center; }
+
+/* --- choix de la couleur apres une carte noire --------------------------- */
+.choixCouleur {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+.couleurs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.pastille {
+  background: var(--teinte);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* --- ecran des regles ---------------------------------------------------- */
+.reglesListe { display: grid; gap: 8px; margin-bottom: 8px; }
+.regle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  padding: 11px 13px;
+}
+.regle.on { border-color: var(--accent); }
+.regle .coche {
+  width: 20px; height: 20px;
+  flex: 0 0 auto;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  color: var(--accent);
+}
+.regle.on .coche { border-color: var(--accent); }
+.regle .texte { display: flex; flex-direction: column; gap: 2px; }
+.regle .texte .hint { margin: 0; font-size: 12px; }
+.manches { display: flex; gap: 8px; margin-bottom: 8px; }
+.manches button { width: auto; flex: 1 1 0; }
+
+@media (max-width: 420px) {
+  .table { height: 210px; }
+  .carte { width: 50px; height: 74px; }
+  .carte .valeur { font-size: 20px; }
+  .siege { width: 62px; }
+}
+
 #toast {
   position: fixed;
   left: 50%;

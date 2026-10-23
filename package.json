@@ -14,6 +14,7 @@
     "sim5": "node tests/sim5.js",
     "sim6": "node tests/sim6.js",
     "sim7": "node tests/sim7.js",
+    "sim8": "node tests/sim8.js",
     "simdom": "node tests/simdom.js"
   },
   "engines": {

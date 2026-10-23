@@ -3,7 +3,7 @@
 Plateforme de mini-jeux à jouer entre amis dans le navigateur : un salon, un
 code à 4 lettres, et des jeux qui se branchent dessus.
 
-Quatre jeux pour l'instant :
+Cinq jeux pour l'instant :
 
 - **Qui a mis ça ?** — un blind-test où chacun choisit 3 à 5 morceaux, puis où
   il faut deviner qui a mis quoi.
@@ -13,6 +13,8 @@ Quatre jeux pour l'instant :
   la majorité l'emporte. Les points vont à ceux qui ont vu venir le groupe.
 - **Devine le craft** — une grille de craft Minecraft s'affiche, à toi de dire
   ce qu'elle fabrique. Réponse libre au clavier, bonus aux plus rapides.
+- **UNO** — autour d'une table, avec les règles maison que vous cochez avant de
+  distribuer. Chacun voit sa main et rien d'autre.
 
 ## Lancer
 
@@ -73,8 +75,12 @@ games/
     server.js               règles (QUESTION / REVEAL)
     reponses.js             comparaison tolérante des réponses libres
     recettes.json           102 recettes, généré — ne pas éditer à la main
+  uno/
+    server.js               tour par tour, règles maison, manches
+    cartes.js               le paquet et les règles de pose
 tools/
   generer-recettes.js       refabrique recettes.json depuis minecraft-data
+  verifier-cartes-uno.js    quelles images de cartes UNO manquent encore
 public/
   index.html                coquille : accueil, création, salon, #game-root, scores
   style.css
@@ -86,8 +92,10 @@ public/
   games/qui-regarde-ca/client.js       affiches
   games/qui-dans-le-groupe/client.js   questions et votes
   games/devine-le-craft/client.js      grille de craft et saisie
+  games/uno/client.js                  la table, les sièges, la main
+  games/uno/cartes/                    tes images de cartes (voir LISEZMOI)
 tests/
-  sim.js … sim7.js          simulations de parties, sans navigateur
+  sim.js … sim8.js          simulations de parties, sans navigateur
   simdom.js                 monte les clients dans un DOM headless
 ```
 
@@ -239,6 +247,19 @@ Ceux de « Qui regarde ça ? » :
 | `QRC_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
 | `QRC_POINTS_CORRECT` / `QRC_POINTS_FOOLED` | 100 / 50 | points |
 
+Ceux d'UNO — ce sont les valeurs de départ, l'hôte peut tout changer avant de
+distribuer :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `UNO_MAIN` | 7 | cartes distribuées à chacun |
+| `UNO_MANCHES` | 3 | manches par partie (l'hôte choisit 1, 3 ou 5) |
+| `UNO_TOUR_MS` | 90000 | temps par tour — au-delà, le joueur pioche et passe |
+| `UNO_EMPILER` | `true` | empiler les +2 et +4 |
+| `UNO_PIOCHER_JUSQU` | `false` | piocher jusqu'à pouvoir jouer |
+| `UNO_PENALITE` | `true` | pénalité si on oublie d'annoncer UNO |
+| `UNO_JUMP_IN` | `false` | jouer hors de son tour |
+
 Ceux de « Devine le craft » :
 
 | Variable | Défaut | Rôle |
@@ -261,6 +282,39 @@ Ceux de « Qui dans le groupe ? » :
 
 Chaque jeu déclare les siens dans son propre fichier, avec les helpers de
 `core/env.js` : la plateforme n'a pas à connaître la liste.
+
+## UNO : les cartes et les règles
+
+**Les règles maison se cochent avant chaque partie**, par l'hôte, sur un écran
+que tout le monde voit : empiler les +2/+4, piocher jusqu'à pouvoir jouer,
+pénalité quand on oublie d'annoncer UNO, et jouer hors de son tour. Les quatre
+sont indépendantes, et leurs valeurs de départ se règlent par variable
+d'environnement (voir plus bas).
+
+**Les cartes sont dessinées en CSS par défaut.** Pour mettre les tiennes,
+dépose des images dans `public/games/uno/cartes/` en suivant les noms décrits
+dans `public/games/uno/cartes/LISEZMOI.md` :
+
+```
+rouge-0.png … rouge-9.png   rouge-passe.png   rouge-inverse.png   rouge-plus2.png
+       (idem bleu, vert, jaune)
+joker.png   joker-plus4.png
+```
+
+Le serveur liste les fichiers présents sur `/api/uno/cartes` et le client
+n'affiche que ceux-là : les cartes sans image restent dessinées en CSS, sans
+une seule requête perdue. Tu peux donc en ajouter **trois aujourd'hui et le
+reste plus tard** — la liste est relue toutes les dix secondes, pas besoin de
+redémarrer. Pour savoir où tu en es :
+
+```bash
+node tools/verifier-cartes-uno.js
+```
+
+**Ce qui ne sort jamais du serveur** : les mains des autres joueurs. Chacun
+reçoit la sienne et, des autres, uniquement le nombre de cartes — `sim8` le
+vérifie carte par carte, et contrôle au passage que le paquet fait toujours
+108 cartes, ni une de plus ni une de moins.
 
 ## Les recettes de Minecraft
 
@@ -384,6 +438,7 @@ npm run sim4         # plateforme : catalogue, droits de l'hôte, enchaînement
 npm run sim5         # qui dans le groupe : écriture, majorité, points
 npm run sim6         # qui regarde ça : validation, secret, partie complète
 npm run sim7         # devine le craft : tolérance aux fautes, secret, partie complète
+npm run sim8         # uno : règles de pose, secret des mains, partie complète
 
 # Les clients, dans un DOM headless — le seul test qui attrape un module
 # cassé ou absent, ce que les simulations serveur ne voient pas.

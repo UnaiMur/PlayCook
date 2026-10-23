@@ -71,6 +71,34 @@ const SCENARIOS = {
         scores: [{ pseudo: 'Alice', score: 150, delta: 150 }], isLast: false } },
   ],
 
+  uno: [
+    { phase: 'REGLES',
+      regles: { empiler: true, piocherJusqu: false, penaliteUno: true, jumpIn: false },
+      manches: 3, estHote: true, assez: true,
+      joueurs: [{ pseudo: 'Alice', connecte: true }, { pseudo: 'Bob', connecte: true }] },
+    { phase: 'JEU', manche: 1, manches: 3,
+      regles: { empiler: true, piocherJusqu: false, penaliteUno: true, jumpIn: false },
+      table: { dessus: { id: 'c1', couleur: 'rouge', valeur: '7' }, couleur: 'rouge',
+        cumul: 0, sens: 1, pioche: 80, tourDe: 'a', finTour: Date.now() + 9000,
+        journal: ['Bob pose un +2 (cumul : 2)'] },
+      joueurs: [
+        { id: 'a', pseudo: 'Alice', cartes: 3, uno: false, aDitUno: false, connecte: true, sonTour: true, moi: true, denoncable: false },
+        { id: 'b', pseudo: 'Bob', cartes: 1, uno: true, aDitUno: false, connecte: true, sonTour: false, moi: false, denoncable: true },
+      ],
+      main: [
+        { id: 'c10', couleur: 'rouge', valeur: '3' },
+        { id: 'c11', couleur: 'bleu', valeur: 'passe' },
+        { id: 'c12', couleur: 'noir', valeur: 'plus4' },
+      ],
+      jouables: ['c10', 'c12'], sautables: [], monTour: true,
+      peutPiocher: true, peutPasser: false, doitRamasser: false, peutDireUno: false },
+    { phase: 'MANCHE', estHote: true,
+      fin: { manche: 1, manches: 3, gagnant: 'Bob', gagne: 42,
+        restes: [{ pseudo: 'Bob', cartes: 0, points: 0 }, { pseudo: 'Alice', cartes: 3, points: 42 }],
+        scores: [{ pseudo: 'Bob', score: 42, delta: 42 }, { pseudo: 'Alice', score: 0, delta: 0 }],
+        derniere: false } },
+  ],
+
   'qui-dans-le-groupe': [
     { phase: 'WRITING', config: { customMax: 2, rounds: 8 }, counts: {},
       myQuestions: [{ id: 'q1', text: 'Qui arrive toujours en retard ?' }],
@@ -178,9 +206,9 @@ for (const [id, phases] of Object.entries(SCENARIOS)) {
   }
 
   // Un deuxieme rendu de la meme manche ne doit pas empiler les elements.
-  const avant = root.querySelectorAll('img, .noart, .cell').length;
+  const avant = root.querySelectorAll('img, .noart, .cell, .carte').length;
   try { mod.render(phases[1], api); } catch { /* deja signale */ }
-  const apres = root.querySelectorAll('img, .noart, .cell').length;
+  const apres = root.querySelectorAll('img, .noart, .cell, .carte').length;
   check(avant === apres, `${id} : un rendu repete duplique le contenu de la manche`);
 
   try {
