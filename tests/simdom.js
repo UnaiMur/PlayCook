@@ -50,6 +50,27 @@ const SCENARIOS = {
         deltas: {}, scores: [{ pseudo: 'Alice', score: 0, delta: 0 }], isLast: true } },
   ],
 
+  'devine-le-craft': [
+    { phase: 'QUESTION',
+      round: { index: 1, total: 10, niveau: 1, quantite: 1,
+        grille: ['AA.', 'AA.', '...'], legende: { A: 'Planches de chêne' }, vrac: null,
+        endsAt: Date.now() + 5000, mesEssais: [{ texte: 'nawak', bon: false, abandon: false }],
+        jaiTrouve: false, jaiAbandonne: false, monRang: null, trouves: 0, joueurs: 2,
+        tableau: [{ pseudo: 'Alice', trouve: false, abandon: false }] } },
+    // Recette « en vrac » : pas de grille, juste des ingrédients.
+    { phase: 'QUESTION',
+      round: { index: 2, total: 10, niveau: 2, quantite: 1,
+        grille: null, legende: null, vrac: [{ nom: 'Papier', nombre: 3 }, { nom: 'Cuir', nombre: 1 }],
+        endsAt: Date.now() + 5000, mesEssais: [], jaiTrouve: true, jaiAbandonne: false,
+        monRang: 1, trouves: 1, joueurs: 2,
+        tableau: [{ pseudo: 'Alice', trouve: true, abandon: false }] } },
+    { phase: 'REVEAL',
+      reveal: { index: 1, total: 10, niveau: 1, resultat: 'Établi', quantite: 1,
+        grille: ['AA.', 'AA.', '...'], legende: { A: 'Planches de chêne' }, vrac: null,
+        trouveurs: [{ pseudo: 'Alice', secondes: 4.2, points: 150 }], rates: ['Bob'],
+        scores: [{ pseudo: 'Alice', score: 150, delta: 150 }], isLast: false } },
+  ],
+
   'qui-dans-le-groupe': [
     { phase: 'WRITING', config: { customMax: 2, rounds: 8 }, counts: {},
       myQuestions: [{ id: 'q1', text: 'Qui arrive toujours en retard ?' }],
@@ -148,7 +169,8 @@ for (const [id, phases] of Object.entries(SCENARIOS)) {
 
     // Le titre de l'element doit arriver jusqu'a l'ecran : c'est tout l'objet
     // du jeu, et une erreur de nom de champ ne se verrait pas autrement.
-    const attendu = view.round?.title || view.reveal?.title || view.round?.text;
+    const attendu = view.round?.title || view.reveal?.title || view.round?.text
+      || view.reveal?.resultat;
     if (attendu) {
       check(texte.includes(attendu),
         `${id} / ${view.phase} : « ${attendu} » n'apparait pas a l'ecran`);
@@ -156,9 +178,9 @@ for (const [id, phases] of Object.entries(SCENARIOS)) {
   }
 
   // Un deuxieme rendu de la meme manche ne doit pas empiler les elements.
-  const avant = root.querySelectorAll('img, .noart').length;
+  const avant = root.querySelectorAll('img, .noart, .cell').length;
   try { mod.render(phases[1], api); } catch { /* deja signale */ }
-  const apres = root.querySelectorAll('img, .noart').length;
+  const apres = root.querySelectorAll('img, .noart, .cell').length;
   check(avant === apres, `${id} : un rendu repete duplique le contenu de la manche`);
 
   try {

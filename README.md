@@ -3,7 +3,7 @@
 Plateforme de mini-jeux à jouer entre amis dans le navigateur : un salon, un
 code à 4 lettres, et des jeux qui se branchent dessus.
 
-Trois jeux pour l'instant :
+Quatre jeux pour l'instant :
 
 - **Qui a mis ça ?** — un blind-test où chacun choisit 3 à 5 morceaux, puis où
   il faut deviner qui a mis quoi.
@@ -11,6 +11,8 @@ Trois jeux pour l'instant :
   titres, affiche à l'écran, et on devine qui regarde quoi.
 - **Qui dans le groupe ?** — une question par manche, chacun désigne un joueur,
   la majorité l'emporte. Les points vont à ceux qui ont vu venir le groupe.
+- **Devine le craft** — une grille de craft Minecraft s'affiche, à toi de dire
+  ce qu'elle fabrique. Réponse libre au clavier, bonus aux plus rapides.
 
 ## Lancer
 
@@ -67,6 +69,12 @@ games/
   qui-dans-le-groupe/
     server.js               règles (WRITING / VOTING / REVEAL)
     questions.js            banque de questions par défaut
+  devine-le-craft/
+    server.js               règles (QUESTION / REVEAL)
+    reponses.js             comparaison tolérante des réponses libres
+    recettes.json           102 recettes, généré — ne pas éditer à la main
+tools/
+  generer-recettes.js       refabrique recettes.json depuis minecraft-data
 public/
   index.html                coquille : accueil, création, salon, #game-root, scores
   style.css
@@ -77,8 +85,9 @@ public/
   games/blindtest/client.js            pré-écoute + audio synchronisé
   games/qui-regarde-ca/client.js       affiches
   games/qui-dans-le-groupe/client.js   questions et votes
+  games/devine-le-craft/client.js      grille de craft et saisie
 tests/
-  sim.js … sim6.js          simulations de parties, sans navigateur
+  sim.js … sim7.js          simulations de parties, sans navigateur
   simdom.js                 monte les clients dans un DOM headless
 ```
 
@@ -230,6 +239,16 @@ Ceux de « Qui regarde ça ? » :
 | `QRC_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
 | `QRC_POINTS_CORRECT` / `QRC_POINTS_FOOLED` | 100 / 50 | points |
 
+Ceux de « Devine le craft » :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `DLC_ROUNDS` | 10 | crafts joués dans une partie |
+| `DLC_ROUND_MS` | 45000 | temps par craft — la manche se ferme dès que plus personne ne cherche |
+| `DLC_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
+| `DLC_POINTS` | 100 | points pour une bonne réponse (+50/+30/+10 aux trois premiers) |
+| `DLC_MAX_ESSAIS` | 12 | essais par joueur et par manche |
+
 Ceux de « Qui dans le groupe ? » :
 
 | Variable | Défaut | Rôle |
@@ -242,6 +261,35 @@ Ceux de « Qui dans le groupe ? » :
 
 Chaque jeu déclare les siens dans son propre fichier, avec les helpers de
 `core/env.js` : la plateforme n'a pas à connaître la liste.
+
+## Les recettes de Minecraft
+
+`games/devine-le-craft/recettes.json` est **généré**, pas écrit à la main : une
+grille de craft est facile à se rappeler de travers, alors les grilles sortent
+de [`minecraft-data`](https://github.com/PrismarineJS/minecraft-data), c'est-à-dire
+des données du jeu. Le script n'ajoute que deux choses à la main : la liste des
+crafts jugés intéressants, et leurs noms français.
+
+```bash
+npm install --no-save minecraft-data
+node tools/generer-recettes.js
+```
+
+Le JSON est commité et `minecraft-data` n'est **pas** une dépendance du
+serveur : rien à installer sur Render, et le jeu continue de tourner même si le
+script n'est jamais relancé. Pour ajouter des crafts ou changer une traduction,
+modifie `tools/generer-recettes.js` puis relance-le.
+
+Deux choix volontaires. Les **variantes en série** sont écartées : une seule
+essence de bois, sinon la partie poserait dix fois la même question sous un nom
+différent. Et il n'y a **aucune texture** : celles de Minecraft appartiennent à
+Mojang, donc la grille est dessinée en CSS, chaque ingrédient représenté par une
+lettre rappelée dans une légende.
+
+**Les réponses sont comparées avec tolérance** (`reponses.js`) : accents
+ignorés, articles retirés, et une ou deux lettres de différence pardonnées selon
+la longueur du mot. La marge reste assez serrée pour que « four » ne valide pas
+« haut fourneau », ni « arc » « arbalète » — `sim7` vérifie les deux sens.
 
 ## Déployer
 
@@ -335,6 +383,7 @@ npm run sim2         # reconnexion, déconnexion et reprise de l'hôte
 npm run sim4         # plateforme : catalogue, droits de l'hôte, enchaînement
 npm run sim5         # qui dans le groupe : écriture, majorité, points
 npm run sim6         # qui regarde ça : validation, secret, partie complète
+npm run sim7         # devine le craft : tolérance aux fautes, secret, partie complète
 
 # Les clients, dans un DOM headless — le seul test qui attrape un module
 # cassé ou absent, ce que les simulations serveur ne voient pas.

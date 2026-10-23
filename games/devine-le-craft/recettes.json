@@ -1,0 +1,2130 @@
+{
+  "_source": "minecraft-data 1.20.4 — régénérer avec : node tools/generer-recettes.js",
+  "version": "1.20.4",
+  "recettes": [
+    {
+      "id": "oak_boat",
+      "niveau": 1,
+      "resultat": "Bateau en chêne",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "AAA",
+        "..."
+      ],
+      "legende": {
+        "A": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Bateau en chêne",
+        "oak boat",
+        "bateau",
+        "barque"
+      ]
+    },
+    {
+      "id": "stick",
+      "niveau": 1,
+      "resultat": "Bâton",
+      "quantite": 4,
+      "grille": [
+        "A..",
+        "A..",
+        "..."
+      ],
+      "legende": {
+        "A": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Bâton",
+        "stick"
+      ]
+    },
+    {
+      "id": "bookshelf",
+      "niveau": 1,
+      "resultat": "Bibliothèque",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BBB",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Livre"
+      },
+      "vrac": null,
+      "alias": [
+        "Bibliothèque",
+        "bookshelf"
+      ]
+    },
+    {
+      "id": "bowl",
+      "niveau": 1,
+      "resultat": "Bol",
+      "quantite": 4,
+      "grille": [
+        "A.A",
+        ".A.",
+        "..."
+      ],
+      "legende": {
+        "A": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Bol",
+        "bowl"
+      ]
+    },
+    {
+      "id": "iron_boots",
+      "niveau": 1,
+      "resultat": "Bottes en fer",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "A.A",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Bottes en fer",
+        "iron boots"
+      ]
+    },
+    {
+      "id": "iron_helmet",
+      "niveau": 1,
+      "resultat": "Casque en fer",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "A.A",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Casque en fer",
+        "iron helmet"
+      ]
+    },
+    {
+      "id": "chest",
+      "niveau": 1,
+      "resultat": "Coffre",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "A.A",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Coffre",
+        "chest"
+      ]
+    },
+    {
+      "id": "ladder",
+      "niveau": 1,
+      "resultat": "Échelle",
+      "quantite": 3,
+      "grille": [
+        "A.A",
+        "AAA",
+        "A.A"
+      ],
+      "legende": {
+        "A": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Échelle",
+        "ladder"
+      ]
+    },
+    {
+      "id": "stone_sword",
+      "niveau": 1,
+      "resultat": "Épée en pierre",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "A..",
+        "B.."
+      ],
+      "legende": {
+        "A": "Pierre",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Épée en pierre",
+        "stone sword"
+      ]
+    },
+    {
+      "id": "crafting_table",
+      "niveau": 1,
+      "resultat": "Établi",
+      "quantite": 1,
+      "grille": [
+        "AA.",
+        "AA.",
+        "..."
+      ],
+      "legende": {
+        "A": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Établi",
+        "crafting table",
+        "table de craft",
+        "table de craftage",
+        "craft"
+      ]
+    },
+    {
+      "id": "glass_bottle",
+      "niveau": 1,
+      "resultat": "Fiole en verre",
+      "quantite": 3,
+      "grille": [
+        "A.A",
+        ".A.",
+        "..."
+      ],
+      "legende": {
+        "A": "Verre"
+      },
+      "vrac": null,
+      "alias": [
+        "Fiole en verre",
+        "glass bottle"
+      ]
+    },
+    {
+      "id": "furnace",
+      "niveau": 1,
+      "resultat": "Four",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "A.A",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Pierre"
+      },
+      "vrac": null,
+      "alias": [
+        "Four",
+        "furnace",
+        "fourneau"
+      ]
+    },
+    {
+      "id": "stone_axe",
+      "niveau": 1,
+      "resultat": "Hache en pierre",
+      "quantite": 1,
+      "grille": [
+        "AA.",
+        "AB.",
+        ".B."
+      ],
+      "legende": {
+        "A": "Pierre",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Hache en pierre",
+        "stone axe"
+      ]
+    },
+    {
+      "id": "book",
+      "niveau": 1,
+      "resultat": "Livre",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Papier",
+          "nombre": 3
+        },
+        {
+          "nom": "Cuir",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Livre",
+        "book"
+      ]
+    },
+    {
+      "id": "bread",
+      "niveau": 1,
+      "resultat": "Pain",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "...",
+        "..."
+      ],
+      "legende": {
+        "A": "Blé"
+      },
+      "vrac": null,
+      "alias": [
+        "Pain",
+        "bread"
+      ]
+    },
+    {
+      "id": "oak_sign",
+      "niveau": 1,
+      "resultat": "Pancarte en chêne",
+      "quantite": 3,
+      "grille": [
+        "AAA",
+        "AAA",
+        ".B."
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Pancarte en chêne",
+        "oak sign",
+        "pancarte",
+        "panneau"
+      ]
+    },
+    {
+      "id": "paper",
+      "niveau": 1,
+      "resultat": "Papier",
+      "quantite": 3,
+      "grille": [
+        "AAA",
+        "...",
+        "..."
+      ],
+      "legende": {
+        "A": "Canne à sucre"
+      },
+      "vrac": null,
+      "alias": [
+        "Papier",
+        "paper"
+      ]
+    },
+    {
+      "id": "stone_shovel",
+      "niveau": 1,
+      "resultat": "Pelle en pierre",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "B.."
+      ],
+      "legende": {
+        "A": "Pierre",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Pelle en pierre",
+        "stone shovel"
+      ]
+    },
+    {
+      "id": "stone_pickaxe",
+      "niveau": 1,
+      "resultat": "Pioche en pierre",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        ".B.",
+        ".B."
+      ],
+      "legende": {
+        "A": "Pierre",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Pioche en pierre",
+        "stone pickaxe"
+      ]
+    },
+    {
+      "id": "iron_chestplate",
+      "niveau": 1,
+      "resultat": "Plastron en fer",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "AAA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Plastron en fer",
+        "iron chestplate"
+      ]
+    },
+    {
+      "id": "oak_door",
+      "niveau": 1,
+      "resultat": "Porte en chêne",
+      "quantite": 3,
+      "grille": [
+        "AA.",
+        "AA.",
+        "AA."
+      ],
+      "legende": {
+        "A": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Porte en chêne",
+        "oak door",
+        "porte"
+      ]
+    },
+    {
+      "id": "flower_pot",
+      "niveau": 1,
+      "resultat": "Pot de fleurs",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        ".A.",
+        "..."
+      ],
+      "legende": {
+        "A": "Brique"
+      },
+      "vrac": null,
+      "alias": [
+        "Pot de fleurs",
+        "flower pot"
+      ]
+    },
+    {
+      "id": "bucket",
+      "niveau": 1,
+      "resultat": "Seau",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        ".A.",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Seau",
+        "bucket"
+      ]
+    },
+    {
+      "id": "torch",
+      "niveau": 1,
+      "resultat": "Torche",
+      "quantite": 4,
+      "grille": [
+        "A..",
+        "B..",
+        "..."
+      ],
+      "legende": {
+        "A": "Charbon",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Torche",
+        "torch"
+      ]
+    },
+    {
+      "id": "glass_pane",
+      "niveau": 1,
+      "resultat": "Vitre",
+      "quantite": 16,
+      "grille": [
+        "AAA",
+        "AAA",
+        "..."
+      ],
+      "legende": {
+        "A": "Verre"
+      },
+      "vrac": null,
+      "alias": [
+        "Vitre",
+        "glass pane",
+        "panneau de verre",
+        "vitres"
+      ]
+    },
+    {
+      "id": "brewing_stand",
+      "niveau": 2,
+      "resultat": "Alambic",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "BBB",
+        "..."
+      ],
+      "legende": {
+        "A": "Bâton de Blaze",
+        "B": "Pierre"
+      },
+      "vrac": null,
+      "alias": [
+        "Alambic",
+        "brewing stand"
+      ]
+    },
+    {
+      "id": "bow",
+      "niveau": 2,
+      "resultat": "Arc",
+      "quantite": 1,
+      "grille": [
+        ".AB",
+        "A.B",
+        ".AB"
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Ficelle"
+      },
+      "vrac": null,
+      "alias": [
+        "Arc",
+        "bow"
+      ]
+    },
+    {
+      "id": "iron_bars",
+      "niveau": 2,
+      "resultat": "Barreaux de fer",
+      "quantite": 16,
+      "grille": [
+        "AAA",
+        "AAA",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Barreaux de fer",
+        "iron bars"
+      ]
+    },
+    {
+      "id": "note_block",
+      "niveau": 2,
+      "resultat": "Bloc musical",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Bloc musical",
+        "note block",
+        "bloc de note",
+        "bloc note"
+      ]
+    },
+    {
+      "id": "shield",
+      "niveau": 2,
+      "resultat": "Bouclier",
+      "quantite": 1,
+      "grille": [
+        "ABA",
+        "AAA",
+        ".A."
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Bouclier",
+        "shield"
+      ]
+    },
+    {
+      "id": "compass",
+      "niveau": 2,
+      "resultat": "Boussole",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "ABA",
+        ".A."
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Boussole",
+        "compass"
+      ]
+    },
+    {
+      "id": "flint_and_steel",
+      "niveau": 2,
+      "resultat": "Briquet",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Lingot de fer",
+          "nombre": 1
+        },
+        {
+          "nom": "Silex",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Briquet",
+        "flint and steel"
+      ]
+    },
+    {
+      "id": "item_frame",
+      "niveau": 2,
+      "resultat": "Cadre",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Cuir"
+      },
+      "vrac": null,
+      "alias": [
+        "Cadre",
+        "item frame"
+      ]
+    },
+    {
+      "id": "fishing_rod",
+      "niveau": 2,
+      "resultat": "Canne à pêche",
+      "quantite": 1,
+      "grille": [
+        "..A",
+        ".AB",
+        "A.B"
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Ficelle"
+      },
+      "vrac": null,
+      "alias": [
+        "Canne à pêche",
+        "fishing rod"
+      ]
+    },
+    {
+      "id": "daylight_detector",
+      "niveau": 2,
+      "resultat": "Capteur de lumière du jour",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BBB",
+        "CCC"
+      ],
+      "legende": {
+        "A": "Verre",
+        "B": "Quartz du Nether",
+        "C": "Dalle de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Capteur de lumière du jour",
+        "daylight detector",
+        "capteur de jour",
+        "detecteur de lumiere"
+      ]
+    },
+    {
+      "id": "golden_carrot",
+      "niveau": 2,
+      "resultat": "Carotte dorée",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Pépite d'or",
+        "B": "Carotte"
+      },
+      "vrac": null,
+      "alias": [
+        "Carotte dorée",
+        "golden carrot",
+        "carotte d or"
+      ]
+    },
+    {
+      "id": "map",
+      "niveau": 2,
+      "resultat": "Carte vierge",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Papier",
+        "B": "Boussole"
+      },
+      "vrac": null,
+      "alias": [
+        "Carte vierge",
+        "map"
+      ]
+    },
+    {
+      "id": "chain",
+      "niveau": 2,
+      "resultat": "Chaîne",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "A.."
+      ],
+      "legende": {
+        "A": "Pépite de fer",
+        "B": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Chaîne",
+        "chain"
+      ]
+    },
+    {
+      "id": "cauldron",
+      "niveau": 2,
+      "resultat": "Chaudron",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "A.A",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Chaudron",
+        "cauldron"
+      ]
+    },
+    {
+      "id": "target",
+      "niveau": 2,
+      "resultat": "Cible",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "ABA",
+        ".A."
+      ],
+      "legende": {
+        "A": "Poudre de redstone",
+        "B": "Botte de foin"
+      },
+      "vrac": null,
+      "alias": [
+        "Cible",
+        "target"
+      ]
+    },
+    {
+      "id": "shears",
+      "niveau": 2,
+      "resultat": "Cisailles",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "A..",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Cisailles",
+        "shears"
+      ]
+    },
+    {
+      "id": "ender_chest",
+      "niveau": 2,
+      "resultat": "Coffre de l'Ender",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Obsidienne",
+        "B": "Œil de l'Ender"
+      },
+      "vrac": null,
+      "alias": [
+        "Coffre de l'Ender",
+        "ender chest",
+        "coffre ender",
+        "coffre de l ender"
+      ]
+    },
+    {
+      "id": "comparator",
+      "niveau": 2,
+      "resultat": "Comparateur de redstone",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "ABA",
+        "CCC"
+      ],
+      "legende": {
+        "A": "Torche de redstone",
+        "B": "Quartz du Nether",
+        "C": "Pierre taillée"
+      },
+      "vrac": null,
+      "alias": [
+        "Comparateur de redstone",
+        "comparator",
+        "comparateur"
+      ]
+    },
+    {
+      "id": "cookie",
+      "niveau": 2,
+      "resultat": "Cookie",
+      "quantite": 8,
+      "grille": [
+        "ABA",
+        "...",
+        "..."
+      ],
+      "legende": {
+        "A": "Blé",
+        "B": "Fèves de cacao"
+      },
+      "vrac": null,
+      "alias": [
+        "Cookie",
+        "cookie"
+      ]
+    },
+    {
+      "id": "tripwire_hook",
+      "niveau": 2,
+      "resultat": "Crochet",
+      "quantite": 2,
+      "grille": [
+        "A..",
+        "B..",
+        "C.."
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Bâton",
+        "C": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Crochet",
+        "tripwire hook",
+        "crochet de fil",
+        "crochet"
+      ]
+    },
+    {
+      "id": "dispenser",
+      "niveau": 2,
+      "resultat": "Distributeur",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "ACA"
+      ],
+      "legende": {
+        "A": "Pierre",
+        "B": "Arc",
+        "C": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Distributeur",
+        "dispenser"
+      ]
+    },
+    {
+      "id": "scaffolding",
+      "niveau": 2,
+      "resultat": "Échafaudage",
+      "quantite": 6,
+      "grille": [
+        "ABA",
+        "A.A",
+        "A.A"
+      ],
+      "legende": {
+        "A": "Bambou",
+        "B": "Ficelle"
+      },
+      "vrac": null,
+      "alias": [
+        "Échafaudage",
+        "scaffolding"
+      ]
+    },
+    {
+      "id": "anvil",
+      "niveau": 2,
+      "resultat": "Enclume",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        ".B.",
+        "BBB"
+      ],
+      "legende": {
+        "A": "Bloc de fer",
+        "B": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Enclume",
+        "anvil"
+      ]
+    },
+    {
+      "id": "hopper",
+      "niveau": 2,
+      "resultat": "Entonnoir",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "ABA",
+        ".A."
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Coffre"
+      },
+      "vrac": null,
+      "alias": [
+        "Entonnoir",
+        "hopper"
+      ]
+    },
+    {
+      "id": "campfire",
+      "niveau": 2,
+      "resultat": "Feu de camp",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "ABA",
+        "CCC"
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Charbon",
+        "C": "Bûche de chêne noir"
+      },
+      "vrac": null,
+      "alias": [
+        "Feu de camp",
+        "campfire"
+      ]
+    },
+    {
+      "id": "arrow",
+      "niveau": 2,
+      "resultat": "Flèche",
+      "quantite": 4,
+      "grille": [
+        "A..",
+        "B..",
+        "C.."
+      ],
+      "legende": {
+        "A": "Silex",
+        "B": "Bâton",
+        "C": "Plume"
+      },
+      "vrac": null,
+      "alias": [
+        "Flèche",
+        "arrow"
+      ]
+    },
+    {
+      "id": "smoker",
+      "niveau": 2,
+      "resultat": "Fumoir",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "ABA",
+        ".A."
+      ],
+      "legende": {
+        "A": "Bûche de chêne noir",
+        "B": "Four"
+      },
+      "vrac": null,
+      "alias": [
+        "Fumoir",
+        "smoker"
+      ]
+    },
+    {
+      "id": "cake",
+      "niveau": 2,
+      "resultat": "Gâteau",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BCB",
+        "DDD"
+      ],
+      "legende": {
+        "A": "Seau de lait",
+        "B": "Sucre",
+        "C": "Œuf",
+        "D": "Blé"
+      },
+      "vrac": null,
+      "alias": [
+        "Gâteau",
+        "cake"
+      ]
+    },
+    {
+      "id": "blast_furnace",
+      "niveau": 2,
+      "resultat": "Haut fourneau",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "CCC"
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Four",
+        "C": "Pierre lisse"
+      },
+      "vrac": null,
+      "alias": [
+        "Haut fourneau",
+        "blast furnace",
+        "haut fourneau",
+        "fourneau"
+      ]
+    },
+    {
+      "id": "clock",
+      "niveau": 2,
+      "resultat": "Horloge",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "ABA",
+        ".A."
+      ],
+      "legende": {
+        "A": "Lingot d'or",
+        "B": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Horloge",
+        "clock"
+      ]
+    },
+    {
+      "id": "jukebox",
+      "niveau": 2,
+      "resultat": "Juke-box",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Diamant"
+      },
+      "vrac": null,
+      "alias": [
+        "Juke-box",
+        "jukebox",
+        "juke box"
+      ]
+    },
+    {
+      "id": "lead",
+      "niveau": 2,
+      "resultat": "Laisse",
+      "quantite": 2,
+      "grille": [
+        "AA.",
+        "AB.",
+        "..A"
+      ],
+      "legende": {
+        "A": "Ficelle",
+        "B": "Boule de slime"
+      },
+      "vrac": null,
+      "alias": [
+        "Laisse",
+        "lead"
+      ]
+    },
+    {
+      "id": "lantern",
+      "niveau": 2,
+      "resultat": "Lanterne",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Pépite de fer",
+        "B": "Torche"
+      },
+      "vrac": null,
+      "alias": [
+        "Lanterne",
+        "lantern"
+      ]
+    },
+    {
+      "id": "lever",
+      "niveau": 2,
+      "resultat": "Levier",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "..."
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Pierre"
+      },
+      "vrac": null,
+      "alias": [
+        "Levier",
+        "lever"
+      ]
+    },
+    {
+      "id": "observer",
+      "niveau": 2,
+      "resultat": "Observateur",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BBC",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Pierre",
+        "B": "Poudre de redstone",
+        "C": "Quartz du Nether"
+      },
+      "vrac": null,
+      "alias": [
+        "Observateur",
+        "observer"
+      ]
+    },
+    {
+      "id": "piston",
+      "niveau": 2,
+      "resultat": "Piston",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BCB",
+        "BDB"
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Pierre",
+        "C": "Lingot de fer",
+        "D": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Piston",
+        "piston"
+      ]
+    },
+    {
+      "id": "sticky_piston",
+      "niveau": 2,
+      "resultat": "Piston collant",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "..."
+      ],
+      "legende": {
+        "A": "Boule de slime",
+        "B": "Piston"
+      },
+      "vrac": null,
+      "alias": [
+        "Piston collant",
+        "sticky piston"
+      ]
+    },
+    {
+      "id": "golden_apple",
+      "niveau": 2,
+      "resultat": "Pomme dorée",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Lingot d'or",
+        "B": "Pomme"
+      },
+      "vrac": null,
+      "alias": [
+        "Pomme dorée",
+        "golden apple",
+        "pomme d or"
+      ]
+    },
+    {
+      "id": "armor_stand",
+      "niveau": 2,
+      "resultat": "Porte-armure",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        ".A.",
+        "ABA"
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Dalle de pierre lisse"
+      },
+      "vrac": null,
+      "alias": [
+        "Porte-armure",
+        "armor stand",
+        "porte armure",
+        "support armure"
+      ]
+    },
+    {
+      "id": "rail",
+      "niveau": 2,
+      "resultat": "Rail",
+      "quantite": 16,
+      "grille": [
+        "A.A",
+        "ABA",
+        "A.A"
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Rail",
+        "rail"
+      ]
+    },
+    {
+      "id": "detector_rail",
+      "niveau": 2,
+      "resultat": "Rail détecteur",
+      "quantite": 6,
+      "grille": [
+        "A.A",
+        "ABA",
+        "ACA"
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Plaque de pression en pierre",
+        "C": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Rail détecteur",
+        "detector rail"
+      ]
+    },
+    {
+      "id": "powered_rail",
+      "niveau": 2,
+      "resultat": "Rail propulseur",
+      "quantite": 6,
+      "grille": [
+        "A.A",
+        "ABA",
+        "ACA"
+      ],
+      "legende": {
+        "A": "Lingot d'or",
+        "B": "Bâton",
+        "C": "Poudre de redstone"
+      },
+      "vrac": null,
+      "alias": [
+        "Rail propulseur",
+        "powered rail"
+      ]
+    },
+    {
+      "id": "repeater",
+      "niveau": 2,
+      "resultat": "Répéteur de redstone",
+      "quantite": 1,
+      "grille": [
+        "ABA",
+        "CCC",
+        "..."
+      ],
+      "legende": {
+        "A": "Torche de redstone",
+        "B": "Poudre de redstone",
+        "C": "Pierre taillée"
+      },
+      "vrac": null,
+      "alias": [
+        "Répéteur de redstone",
+        "repeater",
+        "repeteur"
+      ]
+    },
+    {
+      "id": "enchanting_table",
+      "niveau": 2,
+      "resultat": "Table d'enchantement",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "BCB",
+        "CCC"
+      ],
+      "legende": {
+        "A": "Livre",
+        "B": "Diamant",
+        "C": "Obsidienne"
+      },
+      "vrac": null,
+      "alias": [
+        "Table d'enchantement",
+        "enchanting table"
+      ]
+    },
+    {
+      "id": "painting",
+      "niveau": 2,
+      "resultat": "Tableau",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Laine blanche"
+      },
+      "vrac": null,
+      "alias": [
+        "Tableau",
+        "painting"
+      ]
+    },
+    {
+      "id": "pumpkin_pie",
+      "niveau": 2,
+      "resultat": "Tarte à la citrouille",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Citrouille",
+          "nombre": 1
+        },
+        {
+          "nom": "Sucre",
+          "nombre": 1
+        },
+        {
+          "nom": "Œuf",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Tarte à la citrouille",
+        "pumpkin pie"
+      ]
+    },
+    {
+      "id": "tnt",
+      "niveau": 2,
+      "resultat": "TNT",
+      "quantite": 1,
+      "grille": [
+        "ABA",
+        "BAB",
+        "ABA"
+      ],
+      "legende": {
+        "A": "Poudre à canon",
+        "B": "Sable"
+      },
+      "vrac": null,
+      "alias": [
+        "TNT",
+        "tnt"
+      ]
+    },
+    {
+      "id": "barrel",
+      "niveau": 2,
+      "resultat": "Tonneau",
+      "quantite": 1,
+      "grille": [
+        "ABA",
+        "A.A",
+        "ABA"
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Dalle de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Tonneau",
+        "barrel"
+      ]
+    },
+    {
+      "id": "redstone_torch",
+      "niveau": 2,
+      "resultat": "Torche de redstone",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "..."
+      ],
+      "legende": {
+        "A": "Poudre de redstone",
+        "B": "Bâton"
+      },
+      "vrac": null,
+      "alias": [
+        "Torche de redstone",
+        "redstone torch"
+      ]
+    },
+    {
+      "id": "minecart",
+      "niveau": 2,
+      "resultat": "Wagonnet",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "AAA",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer"
+      },
+      "vrac": null,
+      "alias": [
+        "Wagonnet",
+        "minecart",
+        "wagon",
+        "chariot"
+      ]
+    },
+    {
+      "id": "respawn_anchor",
+      "niveau": 3,
+      "resultat": "Ancre de réapparition",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BBB",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Obsidienne pleureuse",
+        "B": "Pierre lumineuse"
+      },
+      "vrac": null,
+      "alias": [
+        "Ancre de réapparition",
+        "respawn anchor",
+        "ancre de respawn",
+        "ancre"
+      ]
+    },
+    {
+      "id": "crossbow",
+      "niveau": 3,
+      "resultat": "Arbalète",
+      "quantite": 1,
+      "grille": [
+        "ABA",
+        "CDC",
+        ".A."
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Lingot de fer",
+        "C": "Ficelle",
+        "D": "Crochet"
+      },
+      "vrac": null,
+      "alias": [
+        "Arbalète",
+        "crossbow"
+      ]
+    },
+    {
+      "id": "beacon",
+      "niveau": 3,
+      "resultat": "Balise",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "CCC"
+      ],
+      "legende": {
+        "A": "Verre",
+        "B": "Étoile du Nether",
+        "C": "Obsidienne"
+      },
+      "vrac": null,
+      "alias": [
+        "Balise",
+        "beacon"
+      ]
+    },
+    {
+      "id": "shulker_box",
+      "niveau": 3,
+      "resultat": "Boîte de Shulker",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "A.."
+      ],
+      "legende": {
+        "A": "Carapace de Shulker",
+        "B": "Coffre"
+      },
+      "vrac": null,
+      "alias": [
+        "Boîte de Shulker",
+        "shulker box",
+        "boite de shulker",
+        "shulker"
+      ]
+    },
+    {
+      "id": "hay_block",
+      "niveau": 3,
+      "resultat": "Botte de foin",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Blé",
+          "nombre": 9
+        }
+      ],
+      "alias": [
+        "Botte de foin",
+        "hay block",
+        "bloc de foin",
+        "botte de foin"
+      ]
+    },
+    {
+      "id": "candle",
+      "niveau": 3,
+      "resultat": "Bougie",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "..."
+      ],
+      "legende": {
+        "A": "Ficelle",
+        "B": "Rayon de miel"
+      },
+      "vrac": null,
+      "alias": [
+        "Bougie",
+        "candle"
+      ]
+    },
+    {
+      "id": "fire_charge",
+      "niveau": 3,
+      "resultat": "Boule de feu",
+      "quantite": 3,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Poudre à canon",
+          "nombre": 1
+        },
+        {
+          "nom": "Poudre de Blaze",
+          "nombre": 1
+        },
+        {
+          "nom": "Charbon",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Boule de feu",
+        "fire charge",
+        "charge de feu",
+        "boule de feu"
+      ]
+    },
+    {
+      "id": "jack_o_lantern",
+      "niveau": 3,
+      "resultat": "Citrouille-lanterne",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "B..",
+        "..."
+      ],
+      "legende": {
+        "A": "Citrouille sculptée",
+        "B": "Torche"
+      },
+      "vrac": null,
+      "alias": [
+        "Citrouille-lanterne",
+        "jack o lantern",
+        "citrouille lanterne",
+        "lanterne citrouille"
+      ]
+    },
+    {
+      "id": "trapped_chest",
+      "niveau": 3,
+      "resultat": "Coffre piégé",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Coffre",
+          "nombre": 1
+        },
+        {
+          "nom": "Crochet",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Coffre piégé",
+        "trapped chest"
+      ]
+    },
+    {
+      "id": "composter",
+      "niveau": 3,
+      "resultat": "Composteur",
+      "quantite": 1,
+      "grille": [
+        "A.A",
+        "A.A",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Dalle de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Composteur",
+        "composter"
+      ]
+    },
+    {
+      "id": "conduit",
+      "niveau": 3,
+      "resultat": "Conduit",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Coquille de nautile",
+        "B": "Cœur de la mer"
+      },
+      "vrac": null,
+      "alias": [
+        "Conduit",
+        "conduit"
+      ]
+    },
+    {
+      "id": "magma_cream",
+      "niveau": 3,
+      "resultat": "Crème de magma",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Poudre de Blaze",
+          "nombre": 1
+        },
+        {
+          "nom": "Boule de slime",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Crème de magma",
+        "magma cream"
+      ]
+    },
+    {
+      "id": "end_crystal",
+      "niveau": 3,
+      "resultat": "Cristal de l'Ender",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "ABA",
+        "ACA"
+      ],
+      "legende": {
+        "A": "Verre",
+        "B": "Œil de l'Ender",
+        "C": "Larme de Ghast"
+      },
+      "vrac": null,
+      "alias": [
+        "Cristal de l'Ender",
+        "end crystal",
+        "cristal de l end",
+        "cristal ender"
+      ]
+    },
+    {
+      "id": "writable_book",
+      "niveau": 3,
+      "resultat": "Livre et plume",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Livre",
+          "nombre": 1
+        },
+        {
+          "nom": "Poche d'encre",
+          "nombre": 1
+        },
+        {
+          "nom": "Plume",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Livre et plume",
+        "writable book",
+        "livre et plume",
+        "livre vierge"
+      ]
+    },
+    {
+      "id": "spyglass",
+      "niveau": 3,
+      "resultat": "Longue-vue",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        ".B.",
+        ".B."
+      ],
+      "legende": {
+        "A": "Éclat d'améthyste",
+        "B": "Lingot de cuivre"
+      },
+      "vrac": null,
+      "alias": [
+        "Longue-vue",
+        "spyglass",
+        "lunette",
+        "telescope"
+      ]
+    },
+    {
+      "id": "loom",
+      "niveau": 3,
+      "resultat": "Métier à tisser",
+      "quantite": 1,
+      "grille": [
+        "AA.",
+        "BB.",
+        "..."
+      ],
+      "legende": {
+        "A": "Ficelle",
+        "B": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Métier à tisser",
+        "loom"
+      ]
+    },
+    {
+      "id": "grindstone",
+      "niveau": 3,
+      "resultat": "Meule",
+      "quantite": 1,
+      "grille": [
+        "ABA",
+        "C.C",
+        "..."
+      ],
+      "legende": {
+        "A": "Bâton",
+        "B": "Dalle de pierre",
+        "C": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Meule",
+        "grindstone"
+      ]
+    },
+    {
+      "id": "fermented_spider_eye",
+      "niveau": 3,
+      "resultat": "Œil d'araignée fermenté",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Œil d'araignée",
+          "nombre": 1
+        },
+        {
+          "nom": "Champignon brun",
+          "nombre": 1
+        },
+        {
+          "nom": "Sucre",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Œil d'araignée fermenté",
+        "fermented spider eye"
+      ]
+    },
+    {
+      "id": "ender_eye",
+      "niveau": 3,
+      "resultat": "Œil de l'Ender",
+      "quantite": 1,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Perle de l'Ender",
+          "nombre": 1
+        },
+        {
+          "nom": "Poudre de Blaze",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Œil de l'Ender",
+        "ender eye",
+        "oeil de l ender",
+        "oeil ender",
+        "eye of ender"
+      ]
+    },
+    {
+      "id": "lightning_rod",
+      "niveau": 3,
+      "resultat": "Paratonnerre",
+      "quantite": 1,
+      "grille": [
+        "A..",
+        "A..",
+        "A.."
+      ],
+      "legende": {
+        "A": "Lingot de cuivre"
+      },
+      "vrac": null,
+      "alias": [
+        "Paratonnerre",
+        "lightning rod"
+      ]
+    },
+    {
+      "id": "blaze_powder",
+      "niveau": 3,
+      "resultat": "Poudre de Blaze",
+      "quantite": 2,
+      "grille": null,
+      "legende": null,
+      "vrac": [
+        {
+          "nom": "Bâton de Blaze",
+          "nombre": 1
+        }
+      ],
+      "alias": [
+        "Poudre de Blaze",
+        "blaze powder"
+      ]
+    },
+    {
+      "id": "lectern",
+      "niveau": 3,
+      "resultat": "Pupitre",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        ".B.",
+        ".A."
+      ],
+      "legende": {
+        "A": "Dalle de chêne",
+        "B": "Bibliothèque"
+      },
+      "vrac": null,
+      "alias": [
+        "Pupitre",
+        "lectern"
+      ]
+    },
+    {
+      "id": "beehive",
+      "niveau": 3,
+      "resultat": "Ruche",
+      "quantite": 1,
+      "grille": [
+        "AAA",
+        "BBB",
+        "AAA"
+      ],
+      "legende": {
+        "A": "Planches de chêne",
+        "B": "Rayon de miel"
+      },
+      "vrac": null,
+      "alias": [
+        "Ruche",
+        "beehive"
+      ]
+    },
+    {
+      "id": "cartography_table",
+      "niveau": 3,
+      "resultat": "Table de cartographie",
+      "quantite": 1,
+      "grille": [
+        "AA.",
+        "BB.",
+        "BB."
+      ],
+      "legende": {
+        "A": "Papier",
+        "B": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Table de cartographie",
+        "cartography table",
+        "table de carto"
+      ]
+    },
+    {
+      "id": "smithing_table",
+      "niveau": 3,
+      "resultat": "Table de forge",
+      "quantite": 1,
+      "grille": [
+        "AA.",
+        "BB.",
+        "BB."
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Planches de chêne"
+      },
+      "vrac": null,
+      "alias": [
+        "Table de forge",
+        "smithing table",
+        "table de forgeron"
+      ]
+    },
+    {
+      "id": "stonecutter",
+      "niveau": 3,
+      "resultat": "Tailleur de pierre",
+      "quantite": 1,
+      "grille": [
+        ".A.",
+        "BBB",
+        "..."
+      ],
+      "legende": {
+        "A": "Lingot de fer",
+        "B": "Pierre taillée"
+      },
+      "vrac": null,
+      "alias": [
+        "Tailleur de pierre",
+        "stonecutter",
+        "tailleuse de pierre",
+        "scie"
+      ]
+    },
+    {
+      "id": "soul_torch",
+      "niveau": 3,
+      "resultat": "Torche des âmes",
+      "quantite": 4,
+      "grille": [
+        "A..",
+        "B..",
+        "C.."
+      ],
+      "legende": {
+        "A": "Charbon",
+        "B": "Bâton",
+        "C": "Sable des âmes"
+      },
+      "vrac": null,
+      "alias": [
+        "Torche des âmes",
+        "soul torch",
+        "torche d ame",
+        "torche des ames"
+      ]
+    }
+  ]
+}

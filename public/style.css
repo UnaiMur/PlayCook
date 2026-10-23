@@ -247,6 +247,92 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 #game-root .panel { display: none; }
 #game-root .panel.active { display: block; }
 
+/* --- devine le craft : grille 3x3 ----------------------------------------
+   Les textures de Minecraft appartiennent a Mojang : la grille est dessinee
+   en CSS, chaque ingredient porte une lettre, rappelee dans la legende. */
+.craft { margin: 14px 0 18px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  gap: 6px;
+  justify-content: center;
+  padding: 10px;
+  width: max-content;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.cell {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 18px;
+}
+.cell.empty { opacity: .35; }
+
+.legend { margin: 14px auto 0; max-width: 320px; }
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 14px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Une teinte par ingredient : la grille se lit d'un coup d'oeil. */
+.ing-A { background: #3b3366; border-color: #554a8f; }
+.ing-B { background: #1f4a3d; border-color: #2e6b58; }
+.ing-C { background: #5a3a24; border-color: #7d5233; }
+.ing-D { background: #4a2140; border-color: #6d3160; }
+.ing-E { background: #1f3f5a; border-color: #2d5c84; }
+.ing-F { background: #53471c; border-color: #776729; }
+
+/* --- devine le craft : saisie et essais ---------------------------------- */
+.guessRow { display: flex; gap: 8px; }
+.guessRow input { flex: 1 1 auto; margin-bottom: 0; }
+.guessRow button { width: auto; flex: 0 0 auto; }
+
+.tries { margin: 12px 0; }
+.tries li {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 12px;
+  margin-bottom: 5px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+.tries li.good { border-color: var(--ok); }
+.tries li.good span:last-child { color: var(--ok); }
+.tries li.wrong span:last-child { color: var(--bad); }
+
+@media (max-width: 380px) {
+  .grid { grid-template-columns: repeat(3, 46px); }
+  .cell { width: 46px; height: 46px; font-size: 16px; }
+}
+
 #toast {
   position: fixed;
   left: 50%;
