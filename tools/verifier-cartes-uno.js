@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Fait le point sur les images de cartes UNO deposees dans
+// Fait le point sur les images de cartes du jeu « Unai », deposees dans
 // public/games/uno/cartes/.
 //
 //   node tools/verifier-cartes-uno.js

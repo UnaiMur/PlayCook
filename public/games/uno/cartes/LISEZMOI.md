@@ -1,4 +1,4 @@
-# Tes cartes
+# Tes cartes (jeu « Unai »)
 
 Dépose ici une image par carte, nommée exactement comme ci-dessous, en `.png`.
 Le jeu bascule dessus automatiquement, **carte par carte** : tu peux en ajouter

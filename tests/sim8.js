@@ -1,5 +1,5 @@
-// UNO : d'abord les règles de pose (fonctions pures), puis une partie entière
-// jouée par trois robots jusqu'au classement.
+// « Unai » : d'abord les règles de pose (fonctions pures), puis une partie
+// entière jouée par trois robots jusqu'au classement.
 //
 // Le test le plus parlant ici est un invariant : à tout instant, les mains des
 // trois joueurs + la pioche + la défausse doivent faire exactement 108 cartes.
@@ -86,7 +86,9 @@ const until = async (fn, l, ms = 30000) => {
 
 (async () => {
   const menu = await (await fetch(`${URL}/api/games`)).json();
-  check(menu.some((g) => g.id === GAME), "UNO n'apparaît pas dans /api/games");
+  check(menu.some((g) => g.id === GAME), "le jeu n'apparaît pas dans /api/games");
+  check(menu.find((g) => g.id === GAME)?.name === 'Unai',
+    `le jeu devrait s'appeler « Unai », il s'appelle « ${menu.find((g) => g.id === GAME)?.name} »`);
 
   const a = mk('Alice'); a.s.emit('room:create', { pseudo: 'Alice', gameId: GAME });
   await until(() => a.code, 'création');
@@ -150,6 +152,13 @@ const until = async (fn, l, ms = 30000) => {
   // --- les robots jouent ---------------------------------------------------
   let coups = 0;
   const invariants = [];
+  // Le bug corrigé : on pouvait annoncer dès deux cartes, ce qui rendait la
+  // pénalité inoffensive — il suffisait d'appuyer en avance.
+  const annoncesPrecoces = [];
+  const boutonsTropTot = [];
+  const denonciationsTropTot = [];
+  let tentativesA2 = 0;
+  const vuAUneCarte = {};      // pseudo -> instant où il est tombé à une carte
   const pump = setInterval(() => {
     if (gphase(a.state) === 'MANCHE' || a.state?.phase === 'SCORES') return;
     if (gphase(a.state) !== 'JEU') return;
@@ -160,13 +169,44 @@ const until = async (fn, l, ms = 30000) => {
     const enMain = [a, b, c].reduce((n, cl) => n + (cl.state?.view?.main?.length || 0), 0);
     if (enMain + t.pioche > 107) invariants.push(`${enMain} en main + ${t.pioche} en pioche`);
 
+    // --- surveillance de la règle d'annonce --------------------------------
+    for (const cl of [a, b, c]) {
+      const v = cl.state?.view;
+      if (!v || v.phase !== 'JEU') continue;
+
+      // Le bouton ne doit jamais s'offrir ailleurs qu'à une seule carte.
+      if (v.peutDireUno && v.main.length !== 1) {
+        boutonsTropTot.push(`${cl.pseudo} avec ${v.main.length} cartes`);
+      }
+
+      // On tente l'annonce interdite : avec deux cartes, elle doit être ignorée.
+      if (v.main.length === 2) { act(cl.s, 'uno'); tentativesA2 += 1; }
+
+      for (const j of v.joueurs) {
+        // Personne ne doit être marqué « a annoncé » en tenant deux cartes.
+        if (j.cartes === 2 && j.aDitUno) annoncesPrecoces.push(j.pseudo);
+
+        if (j.cartes === 1) {
+          vuAUneCarte[j.pseudo] ??= Date.now();
+          // Et personne ne doit être dénonçable avant la fin du délai de grâce.
+          const depuis = Date.now() - vuAUneCarte[j.pseudo];
+          if (j.denoncable && depuis < 2500) {
+            denonciationsTropTot.push(`${j.pseudo} après ${depuis} ms`);
+          }
+        } else {
+          delete vuAUneCarte[j.pseudo];
+        }
+      }
+    }
+
     for (const cl of [a, b, c]) {
       const v = cl.state?.view;
       if (!v || v.phase !== 'JEU' || !v.monTour) continue;
       coups += 1;
       if (coups > 800) return;
 
-      if (v.peutDireUno && v.main.length === 2) act(cl.s, 'uno');
+      // Annonce au bon moment : dès qu'il ne reste qu'une carte.
+      if (v.peutDireUno) act(cl.s, 'uno');
 
       if (v.jouables.length) {
         const carte = v.main.find((x) => v.jouables.includes(x.id));
@@ -185,6 +225,13 @@ const until = async (fn, l, ms = 30000) => {
   clearInterval(pump);
 
   check(invariants.length === 0, `des cartes apparaissent de nulle part : ${invariants[0]}`);
+  check(tentativesA2 > 0, 'aucun joueur n\'a eu deux cartes : le test de l\'annonce précoce n\'a rien vérifié');
+  check(annoncesPrecoces.length === 0,
+    `annonce acceptée avec deux cartes : ${annoncesPrecoces.slice(0, 3).join(', ')}`);
+  check(boutonsTropTot.length === 0,
+    `le bouton d'annonce est proposé trop tôt : ${boutonsTropTot.slice(0, 3).join(', ')}`);
+  check(denonciationsTropTot.length === 0,
+    `dénonciation possible avant la fin du délai : ${denonciationsTropTot.slice(0, 3).join(', ')}`);
 
   const fin = a.state.view.fin;
   check(!!fin, 'pas de récapitulatif de fin de manche');
@@ -209,7 +256,7 @@ const until = async (fn, l, ms = 30000) => {
 
   console.log(problems.length
     ? `\n✗ ${problems.length} probleme(s) :`
-    : '\n✓ uno : regles de pose, secret des mains, partie complete et score OK');
+    : '\n✓ unai : regles de pose, annonce, secret des mains, partie complete OK');
   problems.forEach((p) => console.log('  - ' + p));
   [a, b, c].forEach((x) => x.s.close());
   process.exit(problems.length ? 1 : 0);

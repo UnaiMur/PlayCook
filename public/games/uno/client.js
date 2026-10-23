@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Client UNO.
+// Client du jeu « Unai ».
 //
 // Trois ecrans : les regles maison, la table, la fin de manche.
 //
@@ -214,8 +214,11 @@ function placerSieges(joueurs) {
       api.el('div.compte', { text: `${j.cartes}` }));
 
     if (j.uno) {
+      // Tant que le delai de grace court, le badge signale juste « une carte ».
+      // Passe ce delai sans annonce, il devient cliquable pour denoncer.
       const badge = api.el(`span.badgeUno${j.denoncable ? '.denoncable' : ''}`, {
-        text: j.denoncable ? 'UNO ?' : 'UNO',
+        text: j.denoncable ? 'Dénoncer' : 'Unai',
+        title: j.denoncable ? 'Il n\'a pas annoncé — clique pour le faire piocher' : '',
       });
       if (j.denoncable) {
         badge.onclick = (e) => { e.stopPropagation(); api.emit('denoncer', { cible: j.id }); };
@@ -285,7 +288,10 @@ function renderJeu(v) {
     ui.actions.append(api.el('button', { text: 'Passer', onclick: () => api.emit('passer') }));
   }
   if (v.peutDireUno) {
-    ui.actions.append(api.el('button.primary', { text: 'UNO !', onclick: () => api.emit('uno') }));
+    ui.actions.append(api.el('button.primary', {
+      text: 'Unai !',
+      onclick: () => api.emit('uno'),
+    }));
   }
 
   startBar(t);

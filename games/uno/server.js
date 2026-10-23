@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// UNO.
+// Unai — le jeu de cartes.
 //
 // Phase 1 (REGLES)  : l'hote coche les regles maison et le nombre de manches.
 // Phase 2 (JEU)     : la table. Chacun joue a son tour, sa main reste a lui.
@@ -22,13 +22,13 @@ import {
 
 export const meta = {
   id: 'uno',
-  name: 'UNO',
+  name: 'Unai',
   tagline: 'Le jeu de cartes, autour d\'une table — avec les règles maison que vous voulez.',
   icon: '🃏',
   rules: [
     'Chacun reçoit 7 cartes ; pose une carte de même couleur, même chiffre ou même symbole.',
     'Les cartes noires se posent sur tout et te laissent choisir la couleur.',
-    'Pense à annoncer UNO quand il ne t\'en reste qu\'une, sinon tu piochesras.',
+    'Annonce « Unai » dès qu\'il ne t\'en reste qu\'une : tu as quelques secondes avant qu\'on puisse te dénoncer.',
     'Le premier à vider sa main empoche les cartes restantes des autres.',
   ],
   minPlayers: 2,
@@ -40,6 +40,9 @@ const CONFIG = {
   mainDepart: num(process.env.UNO_MAIN, 7),
   manchesDefaut: num(process.env.UNO_MANCHES, 3),
   tourMs: num(process.env.UNO_TOUR_MS, 90000),
+  // Temps laisse pour annoncer apres etre tombe a une carte. Sans ce delai,
+  // annoncer serait une loterie de connexion ; avec, c'est une vraie course.
+  graceMs: num(process.env.UNO_GRACE_MS, 3000),
   // Valeurs de depart des regles maison ; l'hote les change avant de distribuer.
   empiler: bool(process.env.UNO_EMPILER, true),
   piocherJusqu: bool(process.env.UNO_PIOCHER_JUSQU, false),
@@ -100,6 +103,7 @@ export function create(ctx) {
   let cumul = 0;           // +2/+4 en attente pour le joueur courant
   let dejaPioche = false;  // le joueur courant a deja pioche ce tour
   let aDitUno = {};
+  let uneCarteDepuis = {};   // quand chacun est tombe a une seule carte
   let journal = [];        // les derniers evenements, affiches sur la table
   let finManche = null;
   let finTour = 0;         // instant limite du tour courant
@@ -111,6 +115,12 @@ export function create(ctx) {
   const noter = (texte) => { journal.push(texte); if (journal.length > 6) journal.shift(); };
 
   const contexte = () => ({ dessus: dessus(), couleur, cumul, empiler: regles.empiler });
+
+  // Denoncable : une seule carte, rien d'annonce, et le delai de grace ecoule.
+  const denoncable = (id) => regles.penaliteUno
+    && (mains[id]?.length ?? 0) === 1
+    && !aDitUno[id]
+    && ctx.now() - (uneCarteDepuis[id] ?? 0) > CONFIG.graceMs;
   const mesJouables = (id) => (mains[id] || []).filter((c) => jouable(c, contexte()));
 
   // -------------------------------------------------------------------------
@@ -165,7 +175,7 @@ export function create(ctx) {
     }
     mains[id].push(...prises);
     // Reprendre des cartes annule l'annonce : on n'est plus a une carte.
-    if (mains[id].length > 1) aDitUno[id] = false;
+    if (mains[id].length > 1) { aDitUno[id] = false; delete uneCarteDepuis[id]; }
     return prises.length;
   }
 
@@ -174,6 +184,7 @@ export function create(ctx) {
     defausse = [];
     mains = {};
     aDitUno = {};
+    uneCarteDepuis = {};
     journal = [];
     cumul = 0;
     sens = 1;
@@ -287,9 +298,13 @@ export function create(ctx) {
         noter(`${pseudo(playerId)} coupe !`);
       }
 
-      // Oublier d'annoncer UNO s'expose a une denonciation, mais seulement si
-      // la regle est active ; sinon on annonce pour lui.
-      if (main.length === 1 && !regles.penaliteUno) aDitUno[playerId] = true;
+      if (main.length === 1) {
+        // Le chrono de grace part maintenant : c'est a cet instant qu'il
+        // fallait annoncer.
+        uneCarteDepuis[playerId] = ctx.now();
+        // Sans la regle, on annonce pour lui : le badge reste informatif.
+        if (!regles.penaliteUno) aDitUno[playerId] = true;
+      }
 
       if (main.length === 0) {
         noter(`${pseudo(playerId)} a posé sa dernière carte`);
@@ -353,21 +368,23 @@ export function create(ctx) {
       avancer();
     },
 
+    // On n'annonce qu'une fois reellement a une carte. Pouvoir le faire des
+    // deux cartes rendait la penalite inoffensive : il suffisait d'appuyer en
+    // avance et plus personne ne pouvait denoncer.
     uno(playerId) {
       if (phase !== 'JEU') return;
-      // On peut l'annoncer juste avant de poser l'avant-derniere carte.
-      if ((mains[playerId] || []).length <= 2) {
-        aDitUno[playerId] = true;
-        noter(`${pseudo(playerId)} : UNO !`);
-      }
+      if ((mains[playerId] || []).length !== 1) return;
+      if (aDitUno[playerId]) return;
+      aDitUno[playerId] = true;
+      noter(`${pseudo(playerId)} : Unai !`);
     },
 
     denoncer(playerId, { cible } = {}) {
       if (phase !== 'JEU' || !regles.penaliteUno) return;
       if (!mains[cible] || cible === playerId) return;
-      if (mains[cible].length === 1 && !aDitUno[cible]) {
+      if (denoncable(cible)) {
         prendre(cible, 2);
-        noter(`${pseudo(cible)} a oublié d'annoncer UNO : +2`);
+        noter(`${pseudo(cible)} a oublié d'annoncer : +2`);
       } else {
         prendre(playerId, 2);
         noter(`${pseudo(playerId)} dénonce à tort : +2`);
@@ -430,9 +447,7 @@ export function create(ctx) {
         connecte: !!connecte(id),
         sonTour: id === courant(),
         moi: id === playerId,
-        // Denoncable : une seule carte, et il ne l'a pas annoncee.
-        denoncable: regles.penaliteUno && id !== playerId
-          && (mains[id]?.length ?? 0) === 1 && !aDitUno[id],
+        denoncable: id !== playerId && denoncable(id),
       })),
       main,
       jouables: monTour ? mesJouables(playerId).map((c) => c.id) : [],
@@ -443,7 +458,7 @@ export function create(ctx) {
       peutPiocher: monTour && (cumul > 0 || !dejaPioche),
       peutPasser: monTour && dejaPioche && cumul === 0,
       doitRamasser: monTour && cumul > 0 && mesJouables(playerId).length === 0,
-      peutDireUno: main.length <= 2 && !aDitUno[playerId],
+      peutDireUno: main.length === 1 && !aDitUno[playerId],
     };
   }
 

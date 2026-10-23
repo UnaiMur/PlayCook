@@ -13,8 +13,8 @@ Cinq jeux pour l'instant :
   la majorité l'emporte. Les points vont à ceux qui ont vu venir le groupe.
 - **Devine le craft** — une grille de craft Minecraft s'affiche, à toi de dire
   ce qu'elle fabrique. Réponse libre au clavier, bonus aux plus rapides.
-- **UNO** — autour d'une table, avec les règles maison que vous cochez avant de
-  distribuer. Chacun voit sa main et rien d'autre.
+- **Unai** — le jeu de cartes, autour d'une table, avec les règles maison que
+  vous cochez avant de distribuer. Chacun voit sa main et rien d'autre.
 
 ## Lancer
 
@@ -75,12 +75,12 @@ games/
     server.js               règles (QUESTION / REVEAL)
     reponses.js             comparaison tolérante des réponses libres
     recettes.json           102 recettes, généré — ne pas éditer à la main
-  uno/
+  uno/                      « Unai » — le dossier garde son nom technique
     server.js               tour par tour, règles maison, manches
     cartes.js               le paquet et les règles de pose
 tools/
   generer-recettes.js       refabrique recettes.json depuis minecraft-data
-  verifier-cartes-uno.js    quelles images de cartes UNO manquent encore
+  verifier-cartes-uno.js    quelles images de cartes manquent encore (Unai)
 public/
   index.html                coquille : accueil, création, salon, #game-root, scores
   style.css
@@ -247,7 +247,7 @@ Ceux de « Qui regarde ça ? » :
 | `QRC_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
 | `QRC_POINTS_CORRECT` / `QRC_POINTS_FOOLED` | 100 / 50 | points |
 
-Ceux d'UNO — ce sont les valeurs de départ, l'hôte peut tout changer avant de
+Ceux d'Unai — ce sont les valeurs de départ, l'hôte peut tout changer avant de
 distribuer :
 
 | Variable | Défaut | Rôle |
@@ -257,7 +257,8 @@ distribuer :
 | `UNO_TOUR_MS` | 90000 | temps par tour — au-delà, le joueur pioche et passe |
 | `UNO_EMPILER` | `true` | empiler les +2 et +4 |
 | `UNO_PIOCHER_JUSQU` | `false` | piocher jusqu'à pouvoir jouer |
-| `UNO_PENALITE` | `true` | pénalité si on oublie d'annoncer UNO |
+| `UNO_PENALITE` | `true` | pénalité si on oublie d'annoncer |
+| `UNO_GRACE_MS` | 3000 | délai pour annoncer avant d'être dénonçable |
 | `UNO_JUMP_IN` | `false` | jouer hors de son tour |
 
 Ceux de « Devine le craft » :
@@ -283,11 +284,11 @@ Ceux de « Qui dans le groupe ? » :
 Chaque jeu déclare les siens dans son propre fichier, avec les helpers de
 `core/env.js` : la plateforme n'a pas à connaître la liste.
 
-## UNO : les cartes et les règles
+## Unai : les cartes et les règles
 
 **Les règles maison se cochent avant chaque partie**, par l'hôte, sur un écran
 que tout le monde voit : empiler les +2/+4, piocher jusqu'à pouvoir jouer,
-pénalité quand on oublie d'annoncer UNO, et jouer hors de son tour. Les quatre
+pénalité quand on oublie d'annoncer, et jouer hors de son tour. Les quatre
 sont indépendantes, et leurs valeurs de départ se règlent par variable
 d'environnement (voir plus bas).
 
@@ -310,6 +311,13 @@ redémarrer. Pour savoir où tu en es :
 ```bash
 node tools/verifier-cartes-uno.js
 ```
+
+**L'annonce se fait à une carte, pas avant.** On ne peut appuyer sur « Unai »
+qu'une fois réellement tombé à une seule carte — pouvoir le faire dès deux
+cartes rendait la pénalité inoffensive, puisqu'il suffisait d'appuyer en
+avance. En échange, un délai de grâce de trois secondes (`UNO_GRACE_MS`) court
+après la pose : pendant ce temps personne ne peut dénoncer, et au-delà le badge
+de ton voisin devient cliquable.
 
 **Ce qui ne sort jamais du serveur** : les mains des autres joueurs. Chacun
 reçoit la sienne et, des autres, uniquement le nombre de cartes — `sim8` le
@@ -438,7 +446,7 @@ npm run sim4         # plateforme : catalogue, droits de l'hôte, enchaînement
 npm run sim5         # qui dans le groupe : écriture, majorité, points
 npm run sim6         # qui regarde ça : validation, secret, partie complète
 npm run sim7         # devine le craft : tolérance aux fautes, secret, partie complète
-npm run sim8         # uno : règles de pose, secret des mains, partie complète
+npm run sim8         # unai : règles de pose, annonce, secret des mains, partie complète
 
 # Les clients, dans un DOM headless — le seul test qui attrape un module
 # cassé ou absent, ce que les simulations serveur ne voient pas.
