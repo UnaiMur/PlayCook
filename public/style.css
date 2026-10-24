@@ -515,6 +515,36 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   .siege { width: 62px; }
 }
 
+/* --- remerciements ------------------------------------------------------- */
+.pied { margin-top: 26px; text-align: center; }
+/* Un bouton qui se donne l'air d'un lien : discret en bas de l'accueil. */
+.lien {
+  width: auto;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lien:hover:not(:disabled) { color: var(--accent); border: none; }
+
+.mercis { margin: 4px 0 22px; }
+.mercis li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.mercis .qui { font-size: 15px; font-weight: 600; }
+.mercis .quoi { font-size: 14px; color: var(--text); }
+.mercis .note { font-size: 13px; color: var(--muted); font-style: italic; }
+
 #toast {
   position: fixed;
   left: 50%;

@@ -86,6 +86,7 @@ public/
   style.css
   core/
     app.js                  client plateforme : vitrine, salon, chargement du jeu
+    remerciements.js        les noms de la page « Merci » — le seul fichier à éditer
     dom.js, clock.js, sound.js
   games/_shared/devine-qui.js          moteur commun, côté écran
   games/blindtest/client.js            pré-écoute + audio synchronisé

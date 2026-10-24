@@ -13,6 +13,7 @@
 // ---------------------------------------------------------------------------
 import { $, el, esc, toast } from './dom.js';
 import { sync, now } from './clock.js';
+import { INTRO, MERCIS, FIN } from './remerciements.js';
 import { sound, initVolume, listenForUnlock } from './sound.js';
 
 const socket = io();
@@ -173,6 +174,22 @@ $('btnCreate').onclick = () => {
   localStorage.setItem('pseudo', pseudo);
   socket.emit('room:create', { pseudo, playerId, gameId: chosen?.id });
 };
+
+// --- remerciements : un ecran statique, sans rien demander au serveur ------
+$('btnMercis').onclick = () => {
+  $('mercisIntro').textContent = INTRO;
+  $('mercisFin').textContent = FIN;
+  const liste = $('mercisListe');
+  liste.innerHTML = '';
+  for (const m of MERCIS) {
+    liste.append(el('li', {},
+      el('span.qui', { text: m.nom }),
+      el('span.quoi', { text: m.pour }),
+      m.note ? el('span.note', { text: m.note }) : null));
+  }
+  show('mercis');
+};
+$('btnMercisRetour').onclick = () => show('home');
 
 $('btnJoin').onclick = () => {
   const pseudo = $('joinPseudo').value.trim();
