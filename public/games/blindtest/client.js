@@ -67,6 +67,38 @@ const cover = (url, api) =>
 const bigCover = (url, api) =>
   (url ? api.el('img.art', { src: url, alt: '' }) : api.el('div.art'));
 
+// La pochette, enveloppee : c'est l'enveloppe qui porte la lueur, pas l'image.
+let pochette = null;
+let pulseTimer = null;
+
+function enveloppe(url, api) {
+  pochette = api.el('div.pochette', {}, bigCover(url, api));
+  return pochette;
+}
+
+// Fait battre la lueur au rythme des graves. Si l'analyse n'est pas
+// disponible, la boucle s'arrete d'elle-meme et la pochette reste sage.
+function demarrerPulse(api) {
+  arreterPulse();
+  if (!pochette || !api.sound.niveaux) return;
+  let douceur = 0;
+  const boucle = () => {
+    const n = api.sound.niveaux();
+    if (!n) return;                       // analyse indisponible : on renonce
+    // On lisse : sans ca la pochette tremble au lieu de respirer.
+    douceur += (n.grave - douceur) * 0.25;
+    pochette?.style.setProperty('--pulse', douceur.toFixed(3));
+    pulseTimer = requestAnimationFrame(boucle);
+  };
+  pulseTimer = requestAnimationFrame(boucle);
+}
+
+function arreterPulse() {
+  if (pulseTimer) cancelAnimationFrame(pulseTimer);
+  pulseTimer = null;
+  pochette?.style.setProperty('--pulse', '0');
+}
+
 export default createGuessWhoClient({
   id: 'blindtest',
 
@@ -96,7 +128,7 @@ export default createGuessWhoClient({
   ],
 
   stage: (r, api) => [
-    bigCover(r.artwork, api),
+    enveloppe(r.artwork, api),
     api.el('h2.center', { text: r.title }),
     api.el('p.artist.center', { text: r.artist }),
   ],
@@ -120,11 +152,13 @@ export default createGuessWhoClient({
       if (!r.previewUrl) return api.toast('Extrait indisponible — vote quand même');
       api.sound.playAt(r.previewUrl, r.startAt,
         () => api.toast("Touche l'écran pour activer le son"));
+      // La lecture est programmee pour plus tard : on attend le depart.
+      setTimeout(() => demarrerPulse(api), Math.max(0, r.startAt - api.now()));
     },
-    roundStop: (api) => api.sound.stop(),
+    roundStop: (api) => { arreterPulse(); api.sound.stop(); },
 
     // Un extrait lance pendant la selection ne doit pas couvrir la partie.
     pickingLeft: (api) => stopCue(api),
-    cleanup: (api) => { stopCue(api); api.sound.stop(); },
+    cleanup: (api) => { arreterPulse(); pochette = null; stopCue(api); api.sound.stop(); },
   },
 });

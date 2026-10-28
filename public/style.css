@@ -700,6 +700,31 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 }
 
 
+/* --- la pochette qui bat avec la musique ----------------------------------
+   `--pulse` va de 0 a 1, posee par le client du blind test a chaque image a
+   partir du niveau des graves. Tout est en transform et opacity : rien qui
+   force le navigateur a recalculer la mise en page. */
+.pochette { position: relative; display: block; width: max-content; margin: 0 auto; }
+.pochette::before {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 62%);
+  opacity: calc(var(--pulse, 0) * .5);
+  transform: scale(calc(1 + var(--pulse, 0) * .22));
+  filter: blur(16px);
+  pointer-events: none;
+  z-index: -1;
+}
+.pochette .art {
+  transform: scale(calc(1 + var(--pulse, 0) * .03));
+  margin-bottom: 18px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pochette::before, .pochette .art { transform: none; }
+}
+
 #toast {
   position: fixed;
   left: 50%;

@@ -13,14 +13,53 @@ import { now } from './clock.js';
 
 const main = new Audio();
 main.preload = 'auto';
-// Pas de crossOrigin : les CDN d'extraits n'envoient pas d'en-tete CORS, et le
-// reclamer ferait echouer le chargement. Il ne servirait qu'a analyser le son.
+// crossOrigin est indispensable pour analyser le son : sans lui, l'analyseur
+// ne recevrait que du silence. Deezer envoie bien l'en-tete CORS — verifie
+// avec public/diagnostic/audio.html. S'il cessait de le faire, le chargement
+// echouerait : d'ou le lecteur de secours plus bas, qui reprend la main sans
+// analyse plutot que de laisser la partie muette.
+main.crossOrigin = 'anonymous';
+
+// Lecteur de repli, jamais branche sur l'analyseur et sans crossOrigin.
+const secours = new Audio();
+secours.preload = 'auto';
+let enSecours = false;
 
 const cue = new Audio();
 cue.preload = 'none';
 
 let unlocked = false;
 let playTimer = null;
+
+// --- analyse du spectre -----------------------------------------------------
+// Branche une seule fois : createMediaElementSource ne peut pas etre rappele
+// sur le meme element, et une fois branche le son passe par le contexte.
+let ctx = null;
+let analyseur = null;
+let spectre = null;
+let analysePossible = true;
+
+function brancherAnalyse() {
+  if (!analysePossible || analyseur || enSecours) return;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) { analysePossible = false; return; }
+  try {
+    ctx = new Ctx();
+    const source = ctx.createMediaElementSource(main);
+    analyseur = ctx.createAnalyser();
+    analyseur.fftSize = 128;
+    analyseur.smoothingTimeConstant = 0.75;
+    source.connect(analyseur);
+    analyseur.connect(ctx.destination);   // sans ca, plus aucun son ne sort
+    spectre = new Uint8Array(analyseur.frequencyBinCount);
+  } catch (err) {
+    // Contexte refuse, element deja branche, navigateur recalcitrant : on
+    // abandonne l'analyse, jamais la lecture.
+    console.warn('[son] analyse indisponible :', err.message);
+    analysePossible = false;
+    analyseur = null;
+  }
+}
 
 // --- volume ----------------------------------------------------------------
 // Reglage purement local : chacun le sien, conserve d'une partie a l'autre.
@@ -35,6 +74,7 @@ function volumeSupported() {
 function applyVolume(pct) {
   const v = Math.max(0, Math.min(100, Number(pct) || 0));
   main.volume = v / 100;
+  secours.volume = v / 100;
   cue.volume = v / 100;
   const icon = $('volIcon');
   if (icon) icon.textContent = v === 0 ? '🔇' : v < 50 ? '🔈' : '🔊';
@@ -66,6 +106,9 @@ export function initVolume() {
 const SILENCE = 'data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABSAAA';
 
 export function unlock() {
+  // Le contexte audio ne demarre qu'apres un geste : c'est ici, pas avant.
+  brancherAnalyse();
+  if (ctx?.state === 'suspended') ctx.resume().catch(() => {});
   if (unlocked) return;
   const a = new Audio(SILENCE);
   a.play().then(() => { unlocked = true; }).catch(() => {});
@@ -85,18 +128,53 @@ export const sound = {
   // Lance `url` a l'instant serveur `at` : tout le monde demarre ensemble.
   playAt(url, at, onBlocked) {
     clearTimeout(playTimer);
-    main.src = url;
-    main.load();
+    const lecteur = enSecours ? secours : main;
+
+    // Le chargement a echoue : presque toujours un refus de CORS. On rebascule
+    // sur le lecteur de secours, sans analyse, et la manche se joue quand meme.
+    lecteur.onerror = () => {
+      if (enSecours) return;
+      console.warn('[son] chargement refuse, bascule sur le lecteur de secours');
+      enSecours = true;
+      analysePossible = false;
+      analyseur = null;
+      secours.volume = main.volume;
+      secours.src = url;
+      secours.load();
+    };
+
+    lecteur.src = url;
+    lecteur.load();
     const wait = Math.max(0, at - now());
     playTimer = setTimeout(() => {
-      main.currentTime = 0;
-      main.play().catch(() => onBlocked && onBlocked());
+      const l = enSecours ? secours : main;
+      l.currentTime = 0;
+      l.play().catch(() => onBlocked && onBlocked());
     }, wait);
   },
 
   stop() {
     clearTimeout(playTimer);
     main.pause();
+    secours.pause();
+  },
+
+  // Niveaux du spectre, 0 a 1, ou null si l'analyse n'est pas disponible.
+  // `grave` sert a faire battre le decor : c'est la bande qui suit le rythme.
+  niveaux() {
+    if (!analyseur || !spectre) return null;
+    analyseur.getByteFrequencyData(spectre);
+    const n = spectre.length;
+    const moyenne = (debut, fin) => {
+      let somme = 0;
+      for (let i = debut; i < fin; i++) somme += spectre[i];
+      return somme / ((fin - debut) * 255);
+    };
+    return {
+      grave: moyenne(0, Math.max(1, Math.floor(n * 0.12))),
+      medium: moyenne(Math.floor(n * 0.12), Math.floor(n * 0.45)),
+      aigu: moyenne(Math.floor(n * 0.45), n),
+    };
   },
 
   // Canal de pre-ecoute : rend une promesse pour pouvoir afficher un etat.

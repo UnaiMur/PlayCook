@@ -144,6 +144,9 @@ function fakeApi(dom) {
     sound: {
       playAt: () => {}, stop: () => {},
       cuePlay: async () => {}, cueStop: () => {}, onCueEnd: () => {},
+      // L'analyseur du blind test : un niveau fixe suffit pour vérifier que le
+      // client sait le lire sans se casser.
+      niveaux: () => ({ grave: 0.6, medium: 0.3, aigu: 0.1 }),
     },
     el,
     esc: (t) => String(t).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])),

@@ -412,6 +412,19 @@ les dernières manches d'une longue partie seraient muettes.
 Le débit sortant est encadré : cache d'une heure sur les métadonnées, file qui
 espace les appels, et quarantaine d'une minute si la source refuse.
 
+**La pochette bat avec la musique.** Le lecteur principal réclame
+`crossOrigin="anonymous"` et passe par un `AnalyserNode` : le client du blind
+test lit le niveau des graves à chaque image et le pose dans une variable CSS
+`--pulse`, qui pilote une lueur derrière la pochette. Tout est en `transform`
+et `opacity`, donc sans recalcul de mise en page.
+
+Deezer envoie bien l'en-tête CORS nécessaire — `public/diagnostic/audio.html`
+le vérifie en deux clics, et compare avec un son témoin servi en local pour
+savoir qui bloque en cas de problème. **Si jamais Deezer cessait de l'envoyer**,
+le chargement échouerait : un second lecteur, sans `crossOrigin` et hors du
+contexte audio, reprend alors la main. On perd l'animation, jamais le son.
+`public/diagnostic/lecteur.html` teste ce repli.
+
 **Synchronisation du son.** Le serveur annonce un instant de départ absolu
 (`startAt`). Chaque client estime d'abord son décalage d'horloge avec le serveur
 (5 allers-retours, médiane), précharge l'extrait, puis programme la lecture.
