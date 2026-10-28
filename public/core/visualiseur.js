@@ -20,6 +20,7 @@ let particules = [];
 let boucle = null;
 let surPulsation = null;
 let lireNiveaux = null;
+let sprites = [];          // figures pre-rasterisees, vide = on dessine des ronds
 
 // Détection des coups : on compare le grave à sa propre moyenne lente. Un
 // passage nettement au-dessus = un coup, qui retombe ensuite tout seul.
@@ -31,6 +32,37 @@ let coup = 0;
 const DANS_NAVIGATEUR = typeof window !== 'undefined' && typeof document !== 'undefined';
 const doux = DANS_NAVIGATEUR
   && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// Les figures de saison. Hors saison, on garde les ronds : neutres, ils vont
+// avec n'importe quelle palette.
+const FIGURES = {
+  halloween: ['citrouille', 'fantome', 'araignee', 'zombie'],
+};
+
+// Un SVG redimensionne a chaque image coute cher. On le rasterise une fois
+// dans un canevas hors-ecran, et on recopie ensuite ce bitmap : la mise a
+// l'echelle d'une image deja peinte est, elle, quasi gratuite.
+const TAILLE_SOURCE = 96;
+
+function chargerFigures(noms) {
+  sprites = [];
+  for (const nom of noms) {
+    const img = new Image();
+    img.onload = () => {
+      const r = img.width / img.height || 1;
+      const l = r >= 1 ? TAILLE_SOURCE : Math.round(TAILLE_SOURCE * r);
+      const h = r >= 1 ? Math.round(TAILLE_SOURCE / r) : TAILLE_SOURCE;
+      const hors = document.createElement('canvas');
+      hors.width = l; hors.height = h;
+      const c = hors.getContext('2d');
+      if (!c) return;
+      c.drawImage(img, 0, 0, l, h);
+      sprites.push({ bitmap: hors, l, h });
+    };
+    img.onerror = () => {};     // figure absente : les autres suffisent
+    img.src = `/deco/${nom}.svg`;
+  }
+}
 
 function couleurs() {
   // On emprunte la palette du thème : le fond suit la saison sans rien coder.
@@ -54,17 +86,23 @@ function dimensionner() {
 function semer() {
   const l = window.innerWidth;
   const h = window.innerHeight;
+  const avecFigures = FIGURES[document.documentElement.dataset.saison]?.length > 0;
   // Le nombre suit la surface : une poignée sur un téléphone, davantage sur un
-  // grand écran, jamais au point de ramer.
-  const cible = doux ? 0 : Math.round(Math.min(130, Math.max(34, (l * h) / 11000)));
+  // grand écran, jamais au point de ramer. Les figures sont plus grandes que
+  // des ronds, donc moins nombreuses — sinon l'écran est encombré.
+  const densite = avecFigures ? 26000 : 11000;
+  const plafond = avecFigures ? 48 : 130;
+  const cible = doux ? 0 : Math.round(Math.min(plafond, Math.max(14, (l * h) / densite)));
   const palette = couleurs();
   particules = Array.from({ length: cible }, () => ({
     x: Math.random() * l,
     y: Math.random() * h,
-    r: 2.5 + Math.random() * 8,
+    r: avecFigures ? 11 + Math.random() * 13 : 2.5 + Math.random() * 8,
     vy: 0.12 + Math.random() * 0.5,
     vx: (Math.random() - 0.5) * 0.25,
     phase: Math.random() * Math.PI * 2,
+    // Chaque particule garde sa figure : elle ne doit pas se metamorphoser.
+    figure: Math.floor(Math.random() * 4),
     teinte: palette[Math.floor(Math.random() * palette.length)],
     alpha: 0.5 + Math.random() * 0.5,
   }));
@@ -105,10 +143,24 @@ function image() {
     if (p.x > l + 14) p.x = -14;
 
     ctx2d.globalAlpha = Math.min(1, p.alpha * (0.8 + aigu * 0.7 + coup * 0.5));
-    ctx2d.fillStyle = p.teinte;
-    ctx2d.beginPath();
-    ctx2d.arc(p.x, p.y, p.r * enfle, 0, Math.PI * 2);
-    ctx2d.fill();
+
+    if (sprites.length) {
+      const s = sprites[p.figure % sprites.length];
+      const taille = p.r * 2 * enfle;
+      const l2 = taille * (s.l / Math.max(s.l, s.h));
+      const h2 = taille * (s.h / Math.max(s.l, s.h));
+      // Un leger balancement : sans lui, les figures ont l'air collees.
+      ctx2d.save();
+      ctx2d.translate(p.x, p.y);
+      ctx2d.rotate(Math.sin(p.phase) * 0.22);
+      ctx2d.drawImage(s.bitmap, -l2 / 2, -h2 / 2, l2, h2);
+      ctx2d.restore();
+    } else {
+      ctx2d.fillStyle = p.teinte;
+      ctx2d.beginPath();
+      ctx2d.arc(p.x, p.y, p.r * enfle, 0, Math.PI * 2);
+      ctx2d.fill();
+    }
   }
   ctx2d.globalAlpha = 1;
 
@@ -140,6 +192,9 @@ export const visualiseur = {
 
     dimensionner();
     semer();
+    // Les figures arrivent de façon asynchrone : en attendant, ce sont des
+    // ronds, et le remplacement se fait tout seul image suivante.
+    chargerFigures(FIGURES[document.documentElement.dataset.saison] || []);
     window.addEventListener('resize', auRedimensionnement);
     boucle = requestAnimationFrame(image);
   },
@@ -154,6 +209,7 @@ export const visualiseur = {
     canvas = null;
     ctx2d = null;
     particules = [];
+    sprites = [];
     surPulsation = null;
     lireNiveaux = null;
   },

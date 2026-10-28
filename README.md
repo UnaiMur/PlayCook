@@ -423,6 +423,18 @@ boucle à lui.
 Le module ne connaît pas le lecteur audio : il reçoit une fonction `niveaux`.
 Il est donc testable seul, et reste inerte hors navigateur.
 
+**En saison, les particules deviennent des figures.** Avec
+`data-saison="halloween"`, ce sont des citrouilles, des fantômes, des araignées
+et des zombies — les SVG de `public/deco/`, remplaçables par tes dessins en
+gardant les noms. Hors saison, ce sont des ronds aux couleurs du thème, qui
+vont avec n'importe quelle palette. Pour ajouter une saison, une ligne dans la
+table `FIGURES` du visualiseur suffit.
+
+Chaque SVG est rasterisé **une seule fois** dans un canevas hors-écran : les
+figures changent de taille à chaque image, et redimensionner un SVG soixante
+fois par seconde coûte cher là où recopier un bitmap ne coûte rien. Elles sont
+aussi moins nombreuses que les ronds — plus grandes, elles encombreraient.
+
 **La pochette bat avec la musique.** Le lecteur principal réclame
 `crossOrigin="anonymous"` et passe par un `AnalyserNode` : le client du blind
 test lit le niveau des graves à chaque image et le pose dans une variable CSS
