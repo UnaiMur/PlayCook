@@ -597,6 +597,109 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 /* Les quatre couleurs des cartes ne bougent pas : ce sont elles qu'on lit pour
    jouer, les déguiser rendrait la partie moins lisible. */
 
+/* --- décorations ----------------------------------------------------------
+   Trois SVG dans public/deco/. Tu peux les remplacer par tes propres dessins
+   en gardant les mêmes noms de fichiers.
+
+   Règles qu'elles respectent toutes : pointer-events: none (jamais un clic
+   avalé), z-index négatif (jamais par-dessus un texte), et aucune n'est
+   placée là où un bouton ou une carte peut arriver. */
+
+/* Deux toiles dans les coins hauts de la page, la seconde en miroir. */
+:root[data-saison="halloween"] body::before,
+:root[data-saison="halloween"] body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  width: 104px;
+  height: 104px;
+  background: url('/deco/toile.svg') no-repeat;
+  opacity: .34;
+  pointer-events: none;
+  z-index: -1;
+}
+:root[data-saison="halloween"] body::before { left: 0; }
+:root[data-saison="halloween"] body::after { right: 0; transform: scaleX(-1); }
+
+/* Un fantôme dérive doucement sur l'accueil, derrière les cartes. Uniquement
+   là : sur un écran de jeu, ça détournerait l'œil au mauvais moment. */
+:root[data-saison="halloween"] #screen-home { position: relative; }
+:root[data-saison="halloween"] #screen-home::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  bottom: 48px;
+  width: 58px;
+  height: 72px;
+  background: url('/deco/fantome.svg') no-repeat center / contain;
+  opacity: .16;
+  pointer-events: none;
+  z-index: -1;
+  animation: derive 9s ease-in-out infinite;
+}
+@keyframes derive {
+  0%, 100% { transform: translate(0, 0) rotate(-3deg); }
+  50%      { transform: translate(-10px, -16px) rotate(3deg); }
+}
+/* Certains réglages système demandent moins d'animation : on la coupe. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-saison="halloween"] #screen-home::after { animation: none; }
+}
+
+/* Une citrouille veille au-dessus du lien « Merci à… », tout en bas. */
+:root[data-saison="halloween"] .pied { position: relative; padding-top: 42px; }
+:root[data-saison="halloween"] .pied::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 32px;
+  background: url('/deco/citrouille.svg') no-repeat center / contain;
+  opacity: .85;
+  pointer-events: none;
+}
+
+/* --- sur la table d'Unai --------------------------------------------------
+   La toile se loge dans le coin haut-gauche du cadre, en dehors de l'ovale :
+   les sièges occupent l'arc du haut, la citrouille va donc en bas, dans la
+   moitié vide. */
+:root[data-saison="halloween"] .table { position: relative; }
+:root[data-saison="halloween"] .table::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px;
+  width: 72px; height: 72px;
+  background: url('/deco/toile.svg') no-repeat center / contain;
+  opacity: .3;
+  pointer-events: none;
+}
+:root[data-saison="halloween"] .table::after {
+  content: '';
+  position: absolute;
+  right: 16px; bottom: 10px;
+  width: 30px; height: 28px;
+  background: url('/deco/citrouille.svg') no-repeat center / contain;
+  opacity: .9;
+  pointer-events: none;
+}
+
+/* --- sur la grille de craft ----------------------------------------------
+   Décalée vers l'extérieur : posée sur le coin, elle couvrait la première
+   case et gênait la lecture de la lettre. */
+:root[data-saison="halloween"] .grid { position: relative; overflow: visible; }
+:root[data-saison="halloween"] .grid::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px;
+  width: 56px; height: 56px;
+  background: url('/deco/toile.svg') no-repeat center / contain;
+  opacity: .3;
+  pointer-events: none;
+}
+
+
 #toast {
   position: fixed;
   left: 50%;

@@ -354,6 +354,24 @@ ignorés, articles retirés, et une ou deux lettres de différence pardonnées s
 la longueur du mot. La marge reste assez serrée pour que « four » ne valide pas
 « haut fourneau », ni « arc » « arbalète » — `sim7` vérifie les deux sens.
 
+## Thème de saison
+
+Un thème Halloween est fourni. Pour l'activer, un attribut sur la balise
+`<html>` de `public/index.html` :
+
+```html
+<html lang="fr" data-saison="halloween">
+```
+
+Pour revenir à la normale, retire l'attribut — rien d'autre à défaire. Tout le
+site passe par les variables CSS du `:root`, donc les cinq jeux suivent : la
+palette, le tapis d'Unai, les décorations.
+
+Les décorations sont trois SVG dans `public/deco/` (`toile.svg`,
+`citrouille.svg`, `fantome.svg`), remplaçables par tes propres dessins en
+gardant les mêmes noms. Elles sont toutes en `pointer-events: none` et en
+retrait de z-index : aucune n'avale un clic ni ne passe devant un texte.
+
 ## Déployer
 
 Ce serveur garde l'état des parties **en mémoire** et tient des connexions
