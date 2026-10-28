@@ -7,6 +7,7 @@
 // synchronise de l'extrait pendant la manche.
 // ---------------------------------------------------------------------------
 import { createGuessWhoClient } from '../_shared/devine-qui.js';
+import { visualiseur } from '../../core/visualiseur.js';
 
 const SEARCH = '/api/blindtest/search';
 const PREVIEW = '/api/blindtest/preview';
@@ -69,33 +70,33 @@ const bigCover = (url, api) =>
 
 // La pochette, enveloppee : c'est l'enveloppe qui porte la lueur, pas l'image.
 let pochette = null;
-let pulseTimer = null;
 
 function enveloppe(url, api) {
   pochette = api.el('div.pochette', {}, bigCover(url, api));
   return pochette;
 }
 
-// Fait battre la lueur au rythme des graves. Si l'analyse n'est pas
-// disponible, la boucle s'arrete d'elle-meme et la pochette reste sage.
+// Le fond animé et la pochette battent ensemble : une seule boucle, tenue par
+// le visualiseur, qui nous rappelle à chaque image.
+let douceur = 0;
+
 function demarrerPulse(api) {
   arreterPulse();
-  if (!pochette || !api.sound.niveaux) return;
-  let douceur = 0;
-  const boucle = () => {
-    const n = api.sound.niveaux();
-    if (!n) return;                       // analyse indisponible : on renonce
-    // On lisse : sans ca la pochette tremble au lieu de respirer.
-    douceur += (n.grave - douceur) * 0.25;
-    pochette?.style.setProperty('--pulse', douceur.toFixed(3));
-    pulseTimer = requestAnimationFrame(boucle);
-  };
-  pulseTimer = requestAnimationFrame(boucle);
+  visualiseur.demarrer({
+    niveaux: () => api.sound.niveaux?.() || null,
+    surPulsation: ({ grave, coup }) => {
+      // Le coup donne le punch, le grave le fond : sans le lissage la pochette
+      // tremblerait au lieu de respirer.
+      const vise = Math.min(1, grave * 0.75 + coup * 0.85);
+      douceur += (vise - douceur) * 0.3;
+      pochette?.style.setProperty('--pulse', douceur.toFixed(3));
+    },
+  });
 }
 
 function arreterPulse() {
-  if (pulseTimer) cancelAnimationFrame(pulseTimer);
-  pulseTimer = null;
+  visualiseur.arreter();
+  douceur = 0;
   pochette?.style.setProperty('--pulse', '0');
 }
 
@@ -156,9 +157,9 @@ export default createGuessWhoClient({
       setTimeout(() => demarrerPulse(api), Math.max(0, r.startAt - api.now()));
     },
     roundStop: (api) => { arreterPulse(); api.sound.stop(); },
-
-    // Un extrait lance pendant la selection ne doit pas couvrir la partie.
+    // Le fond ne survit pas à la partie : il n'a de sens qu'avec la musique.
     pickingLeft: (api) => stopCue(api),
+
     cleanup: (api) => { arreterPulse(); pochette = null; stopCue(api); api.sound.stop(); },
   },
 });

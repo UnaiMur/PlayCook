@@ -412,10 +412,23 @@ les dernières manches d'une longue partie seraient muettes.
 Le débit sortant est encadré : cache d'une heure sur les métadonnées, file qui
 espace les appels, et quarantaine d'une minute si la source refuse.
 
+**Le fond réagit à la musique.** `public/core/visualiseur.js` tient un canevas
+de particules derrière la page et une **seule** boucle d'animation. C'est
+volontaire : la détection des coups garde un état d'une image à l'autre
+(moyenne glissante du grave, décroissance), et deux boucles la feraient
+retomber deux fois trop vite. Un jeu lui passe deux fonctions — de quoi lire
+les niveaux, et quoi faire à chaque image — et anime ses propres éléments sans
+boucle à lui.
+
+Le module ne connaît pas le lecteur audio : il reçoit une fonction `niveaux`.
+Il est donc testable seul, et reste inerte hors navigateur.
+
 **La pochette bat avec la musique.** Le lecteur principal réclame
 `crossOrigin="anonymous"` et passe par un `AnalyserNode` : le client du blind
 test lit le niveau des graves à chaque image et le pose dans une variable CSS
-`--pulse`, qui pilote une lueur derrière la pochette. Tout est en `transform`
+`--pulse`, qui pilote une lueur derrière la pochette. Ce sont les **coups** de
+grave qui mènent la danse, pas le niveau brut : comparé à sa propre moyenne,
+le grave donne un battement net là où le niveau seul ne donnait qu'une ondulation. Tout est en `transform`
 et `opacity`, donc sans recalcul de mise en page.
 
 Deezer envoie bien l'en-tête CORS nécessaire — `public/diagnostic/audio.html`

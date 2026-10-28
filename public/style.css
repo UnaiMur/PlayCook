@@ -711,18 +711,37 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   inset: -18%;
   border-radius: 50%;
   background: radial-gradient(circle, var(--accent) 0%, transparent 62%);
-  opacity: calc(var(--pulse, 0) * .5);
-  transform: scale(calc(1 + var(--pulse, 0) * .22));
-  filter: blur(16px);
+  opacity: calc(var(--pulse, 0) * .85);
+  transform: scale(calc(1 + var(--pulse, 0) * .55));
+  filter: blur(18px);
   pointer-events: none;
   z-index: -1;
 }
 .pochette .art {
-  transform: scale(calc(1 + var(--pulse, 0) * .03));
+  transform: scale(calc(1 + var(--pulse, 0) * .10));
   margin-bottom: 18px;
 }
 @media (prefers-reduced-motion: reduce) {
   .pochette::before, .pochette .art { transform: none; }
+}
+
+/* Pendant que le fond bouge, le texte se détache sur un halo sombre : sans ça
+   une particule qui passe derrière rend le titre illisible. */
+.avecFond #game-root h2,
+.avecFond #game-root h3,
+.avecFond #game-root .artist,
+.avecFond #game-root .hint {
+  text-shadow: 0 1px 5px var(--bg), 0 0 14px var(--bg), 0 0 22px var(--bg);
+}
+
+/* Le fond animé du blind test : derrière tout, et il n'avale aucun clic. */
+.fondAnime {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -2;
 }
 
 #toast {
