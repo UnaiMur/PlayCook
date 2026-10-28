@@ -545,6 +545,58 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
 .mercis .quoi { font-size: 14px; color: var(--text); }
 .mercis .note { font-size: 13px; color: var(--muted); font-style: italic; }
 
+/* ===========================================================================
+   THÈME HALLOWEEN
+   ---------------------------------------------------------------------------
+   Pour l'activer : ajoute data-saison="halloween" sur la balise <html> de
+   public/index.html.      <html lang="fr" data-saison="halloween">
+   Pour le désactiver : retire l'attribut. Rien d'autre à toucher, et rien à
+   défaire le 1er novembre.
+
+   Tout le site passe par ces variables, donc les cinq jeux suivent.
+   =========================================================================== */
+:root[data-saison="halloween"] {
+  --bg: #140d16;      /* noir légèrement violacé plutôt que bleuté */
+  --card: #1f1526;    /* aubergine sombre */
+  --line: #3a2740;
+  --text: #f6edf2;
+  --muted: #a98fa6;
+  --accent: #e8732a;  /* orange citrouille */
+  --ok: #7cb518;      /* vert sorcière, plus acide que le vert d'origine */
+  /* Rouge choisi contre l'accent, pas dans l'absolu : l'orange d'origine
+     (#d85a30) et un rouge sombre (#c62828) se confondaient tous deux avec lui.
+     Celui-ci s'en écarte assez en teinte, et reste lisible sur fond sombre
+     (5,2:1 sur les cartes, au-dessus du seuil de 4,5:1). */
+  --bad: #f0565b;
+}
+
+/* Une lueur de citrouille en haut de page. Un dégradé fixe, rien d'animé :
+   c'est ce qui coûte le moins cher sur un téléphone. */
+:root[data-saison="halloween"] body {
+  background-image:
+    radial-gradient(ellipse 90% 320px at 50% -40px, rgba(232, 115, 42, .16), transparent 72%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+:root[data-saison="halloween"] header {
+  border-bottom-color: #4a2c22;
+}
+
+/* Le titre prend la couleur de la saison. */
+:root[data-saison="halloween"] header h1 {
+  color: var(--accent);
+}
+
+/* --- le tapis d'Unai ------------------------------------------------------
+   Le vert sapin jure avec l'orange : on passe sur un velours aubergine. */
+:root[data-saison="halloween"] .table {
+  background: radial-gradient(ellipse at center, #2d1836 0%, #1e1025 70%, #170c1c 100%);
+}
+
+/* Les quatre couleurs des cartes ne bougent pas : ce sont elles qu'on lit pour
+   jouer, les déguiser rendrait la partie moins lisible. */
+
 #toast {
   position: fixed;
   left: 50%;
