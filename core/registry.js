@@ -5,12 +5,15 @@
 // l'importer ici. Rien d'autre a toucher dans le coeur.
 // ---------------------------------------------------------------------------
 import * as blindtest from '../games/blindtest/server.js';
+import * as devineLaMusique from '../games/devine-la-musique/server.js';
 import * as quiRegardeCa from '../games/qui-regarde-ca/server.js';
 import * as quiDansLeGroupe from '../games/qui-dans-le-groupe/server.js';
 import * as devineLeCraft from '../games/devine-le-craft/server.js';
 import * as uno from '../games/uno/server.js';
 
-const modules = [blindtest, quiRegardeCa, quiDansLeGroupe, devineLeCraft, uno];
+const modules = [
+  blindtest, devineLaMusique, quiRegardeCa, quiDansLeGroupe, devineLeCraft, uno,
+];
 
 const byId = new Map();
 for (const mod of modules) {

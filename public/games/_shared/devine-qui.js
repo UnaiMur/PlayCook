@@ -15,13 +15,17 @@
 //
 // Aucun identifiant DOM : le moteur garde ses propres references, donc deux
 // jeux ne peuvent pas se marcher dessus.
+//
+// Le champ de recherche lui-meme vit dans ./recherche.js : son anti-rebond
+// protege un quota d'API partage par tout le serveur, et doit donc etre le
+// meme pour tous les jeux.
 // ---------------------------------------------------------------------------
+import { creerRecherche } from './recherche.js';
 
 export function createGuessWhoClient(spec) {
   let ui = null;
   let api = null;
-  let searchTimer = null;
-  let searchSeq = 0;
+  let recherche = null;
   let barTimer = null;
   let stagedRound = -1;     // manche actuellement dessinee
   let stagedReveal = -1;
@@ -30,14 +34,10 @@ export function createGuessWhoClient(spec) {
   // Construction, une seule fois
   // -------------------------------------------------------------------------
   function build(root, el) {
-    const results = el('ul.results');
+    const results = recherche.liste;
+    const search = recherche.champ;
     const mine = el('ul.mine');
     const hint = el('p.hint');
-    const search = el('input', {
-      placeholder: spec.search.placeholder,
-      maxlength: '80',
-      autocomplete: 'off',
-    });
     const ready = el('button', { text: 'Je suis prêt' });
     const begin = el('button.primary', { text: 'Démarrer la partie' });
 
@@ -79,57 +79,12 @@ export function createGuessWhoClient(spec) {
   }
 
   // -------------------------------------------------------------------------
-  // Recherche
-  //
-  // Chaque frappe partait en requete : a plusieurs joueurs, le quota de l'API
-  // (partage par tout le serveur, il est par IP) sautait en quelques secondes.
-  // D'ou un anti-rebond long, un minimum de caracteres, et Entree pour forcer.
-  // -------------------------------------------------------------------------
-  async function runSearch(q) {
-    const seq = ++searchSeq;
-    ui.results.innerHTML = '';
-    ui.results.append(api.el('li.loading', { text: 'Recherche…' }));
-    try {
-      const r = await fetch(`${spec.search.url}?q=${encodeURIComponent(q)}`);
-      const body = await r.json();
-      if (seq !== searchSeq) return;      // une frappe plus recente a pris la main
-
-      ui.results.innerHTML = '';
-      if (!r.ok) return api.toast(searchError(body));
-      if (!body.length) return api.toast('Aucun résultat');
-
-      for (const item of body) {
-        const li = api.el('li', {}, ...spec.row(item, api));
-        li.onclick = () => {
-          spec.hooks?.beforeSubmit?.(api);
-          api.emit('submit', item);
-          ui.search.value = '';
-          ui.results.innerHTML = '';
-        };
-        ui.results.append(li);
-      }
-    } catch {
-      if (seq !== searchSeq) return;
-      ui.results.innerHTML = '';
-      api.toast('Recherche indisponible');
-    }
-  }
-
-  function searchError(body) {
-    if (body?.error === 'rate' || body?.error === 'busy') {
-      return `Trop de recherches en même temps — réessaie dans ${body.retryIn || 10} s`;
-    }
-    // Un jeu peut expliquer ses propres pannes (une cle d'API absente, par ex.)
-    return spec.search.errorMessage?.(body) || 'Recherche indisponible';
-  }
-
-  // -------------------------------------------------------------------------
   // Rendu par phase
   // -------------------------------------------------------------------------
   function renderPicking(v) {
     const n = v.mySubmissions.length;
     ui.hint.textContent = spec.texts.hint(v.config, n);
-    ui.search.disabled = n >= v.config.maxItems || v.myReady;
+    recherche.bloquer(n >= v.config.maxItems || v.myReady);
 
     ui.mine.innerHTML = '';
     for (const item of v.mySubmissions) {
@@ -238,21 +193,19 @@ export function createGuessWhoClient(spec) {
 
     mount(root, initialApi) {
       api = initialApi;
+      recherche = creerRecherche(api, {
+        url: spec.search.url,
+        placeholder: spec.search.placeholder,
+        minLength: spec.search.minLength,
+        ligne: (item, a) => spec.row(item, a),
+        surErreur: (corps) => spec.search.errorMessage?.(corps),
+        surChoix: (item) => {
+          spec.hooks?.beforeSubmit?.(api);
+          api.emit('submit', item);
+          recherche.vider();
+        },
+      });
       ui = build(root, api.el);
-
-      const min = spec.search.minLength ?? 3;
-      ui.search.oninput = (e) => {
-        clearTimeout(searchTimer);
-        const q = e.target.value.trim();
-        if (q.length < min) return (ui.results.innerHTML = '');
-        searchTimer = setTimeout(() => runSearch(q), 700);
-      };
-      ui.search.onkeydown = (e) => {
-        if (e.key !== 'Enter') return;
-        clearTimeout(searchTimer);
-        const q = e.target.value.trim();
-        if (q.length >= 2) runSearch(q);
-      };
 
       ui.ready.onclick = () => api.ready(!ui.ready.classList.contains('done'));
       ui.begin.onclick = () => api.emit('begin');
@@ -283,7 +236,7 @@ export function createGuessWhoClient(spec) {
     },
 
     unmount() {
-      clearTimeout(searchTimer);
+      recherche?.arreter();
       clearInterval(barTimer);
       stagedRound = -1;
       stagedReveal = -1;

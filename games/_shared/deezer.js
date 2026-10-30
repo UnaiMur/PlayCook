@@ -1,5 +1,14 @@
 // ---------------------------------------------------------------------------
-// Proxy Deezer — specifique au blind test, donc range avec lui.
+// Proxy Deezer — partage par les jeux musicaux.
+//
+// Deux jeux s'en servent (« Qui a mis ça ? » et « Devine la musique »), et
+// c'est volontairement UN SEUL module : le quota Deezer est par IP, donc par
+// serveur. Deux proxys independants auraient chacun leur file et leur
+// quarantaine, et se seraient fait bloquer a deux fois la vitesse. Ici la file,
+// les caches et la quarantaine sont communs.
+//
+// Chaque jeu monte ses propres routes avec son prefixe, via routes(app, nom) :
+// les URL restent propres a chaque jeu, la plomberie est commune.
 //
 // Apple renvoyait des 403 meme a une requete par minute : l'IP de sortie de
 // l'hebergeur est bloquee, et aucun reglage de debit n'y change rien. Deezer
@@ -25,7 +34,13 @@ export const ARTWORK_HOST = PREVIEW_HOST;
 
 const searchCache = new Map();
 const previewCache = new Map();
+const chartCache = new Map();
+let genresCache = null;
 const CACHE_TTL = num(process.env.CACHE_TTL_MS, 60 * 60 * 1000);
+// Les tops et la liste des genres bougent a peine : on les garde longtemps,
+// c'est autant d'appels economises sur le quota pour les parties suivantes.
+const CHART_TTL = num(process.env.CHART_TTL_MS, 6 * 60 * 60 * 1000);
+const CHART_PAGES = num(process.env.CHART_PAGES, 3);
 // Bien en deca des ~15 min de validite d'une URL signee
 const PREVIEW_TTL = num(process.env.PREVIEW_TTL_MS, 5 * 60 * 1000);
 const CACHE_MAX = 500;
@@ -71,17 +86,81 @@ async function callApi(path) {
   return json;
 }
 
+// Un morceau tel qu'on le fait circuler. previewUrl volontairement absent :
+// il expirerait avant d'etre utilise (voir l'entete).
+//
+// `titleShort` est le titre sans les « (feat. ...) » et autres mentions, tel
+// que Deezer le fournit. « Devine la musique » s'en sert pour accepter la
+// reponse courte sans avoir a deviner ou couper le titre long.
+const piste = (t) => ({
+  trackKey: String(t.id),
+  title: t.title,
+  titleShort: t.title_short || '',
+  artist: t.artist?.name || '',
+  artwork: secure(t.album?.cover_medium || t.album?.cover || ''),
+});
+
+// Un morceau sans extrait jouable n'a aucun interet ici, quel que soit le jeu.
+const jouable = (t) => t.id && t.preview && t.readable !== false;
+
 async function searchTracks(term) {
   const json = await callApi(`/search?limit=12&q=${encodeURIComponent(term)}`);
-  // previewUrl volontairement absent : il expirerait avant d'etre utilise
-  return (json.data || [])
-    .filter((t) => t.id && t.preview && t.readable !== false)
-    .map((t) => ({
-      trackKey: String(t.id),
-      title: t.title,
-      artist: t.artist?.name || '',
-      artwork: secure(t.album?.cover_medium || t.album?.cover || ''),
-    }));
+  return (json.data || []).filter(jouable).map(piste);
+}
+
+// Secondes restantes de quarantaine, 0 si la voie est libre.
+export const cooldownRestant = () =>
+  Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+
+// ---------------------------------------------------------------------------
+// Les tops, pour le mode « musique aleatoire »
+//
+// Deezer n'a pas d'endpoint « un morceau au hasard » : on puise donc dans les
+// tops, ce qui tombe bien pour un blind test — un morceau que personne ne
+// connait ne se devine pas. Le genre 0 vaut « tous genres ».
+//
+// On pagine pour avoir de quoi tirer sans se repeter d'une partie a l'autre :
+// un top de 100 titres suffirait a une partie mais pas a dix.
+// ---------------------------------------------------------------------------
+export async function chartTracks(genreId = '0') {
+  const id = /^\d+$/.test(String(genreId)) ? String(genreId) : '0';
+  const hit = chartCache.get(id);
+  if (hit && Date.now() - hit.at < CHART_TTL) return hit.data;
+
+  const lot = [];
+  const vus = new Set();
+  for (let page = 0; page < CHART_PAGES; page++) {
+    const json = await schedule(
+      () => callApi(`/chart/${id}/tracks?limit=100&index=${page * 100}`)
+    );
+    const data = json.data || [];
+    for (const t of data) {
+      if (!jouable(t) || vus.has(String(t.id))) continue;
+      vus.add(String(t.id));
+      lot.push(piste(t));
+    }
+    // Page incomplete : le top est plus court que prevu, inutile d'insister.
+    if (data.length < 100) break;
+  }
+
+  if (!lot.length) throw new Error('top vide');
+  chartCache.set(id, { at: Date.now(), data: lot });
+  return lot;
+}
+
+// La liste des genres vient de Deezer plutot que d'une table ecrite ici : des
+// identifiants recopies de memoire seraient faux, et une liste figee vieillit.
+export async function listGenres() {
+  if (genresCache && Date.now() - genresCache.at < CHART_TTL) return genresCache.data;
+
+  const json = await schedule(() => callApi('/genre'));
+  const data = (json.data || [])
+    .filter((g) => g.id != null && g.name)
+    .map((g) => ({ id: String(g.id), name: g.name }));
+  if (!data.length) throw new Error('genres vides');
+
+  genresCache = { at: Date.now(), data };
+  return data;
 }
 
 export async function resolvePreview(trackKey) {
@@ -106,8 +185,13 @@ function apiError(res, err, quoi) {
   return res.status(502).json({ error: 'down' });
 }
 
-export function routes(app) {
-  app.get('/api/blindtest/search', async (req, res) => {
+// Monte /api/<prefixe>/search et /api/<prefixe>/preview. Chaque jeu appelle
+// ceci avec son propre prefixe : des URL lisibles cote client, une seule file
+// d'attente cote serveur.
+export function routes(app, prefixe) {
+  if (!prefixe) throw new Error('deezer: prefixe de route manquant');
+
+  app.get(`/api/${prefixe}/search`, async (req, res) => {
     const raw = (req.query.q || '').trim();
     if (raw.length < 2) return res.json([]);
 
@@ -115,7 +199,7 @@ export function routes(app) {
     const hit = searchCache.get(key);
     if (hit && Date.now() - hit.at < CACHE_TTL) return res.json(hit.data);
 
-    const reste = Math.ceil((cooldownUntil - Date.now()) / 1000);
+    const reste = cooldownRestant();
     if (reste > 0) return res.status(429).json({ error: 'rate', retryIn: reste });
     if ((queued + 1) * GAP_MS > MAX_WAIT_MS) {
       return res.status(429).json({ error: 'busy', retryIn: Math.ceil(MAX_WAIT_MS / 1000) });
@@ -133,11 +217,11 @@ export function routes(app) {
 
   // Signe une URL d'extrait a la demande, pour les boutons d'ecoute de la
   // phase de selection. La partie, elle, resigne cote serveur a chaque manche.
-  app.get('/api/blindtest/preview', async (req, res) => {
+  app.get(`/api/${prefixe}/preview`, async (req, res) => {
     const id = String(req.query.id || '').trim();
     if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'bad' });
 
-    const reste = Math.ceil((cooldownUntil - Date.now()) / 1000);
+    const reste = cooldownRestant();
     if (reste > 0) return res.status(429).json({ error: 'rate', retryIn: reste });
 
     try {

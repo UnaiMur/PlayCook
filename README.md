@@ -3,10 +3,13 @@
 Plateforme de mini-jeux à jouer entre amis dans le navigateur : un salon, un
 code à 4 lettres, et des jeux qui se branchent dessus.
 
-Cinq jeux pour l'instant :
+Six jeux pour l'instant :
 
 - **Qui a mis ça ?** — un blind-test où chacun choisit 3 à 5 morceaux, puis où
   il faut deviner qui a mis quoi.
+- **Devine la musique** — le blind-test classique : l'extrait tourne, on tape le
+  titre et l'artiste. Au choix, des morceaux tirés des tops ou déposés par les
+  joueurs — et dans ce cas, on ne répond pas sur les siens.
 - **Qui regarde ça ?** — le même, en séries et en films : chacun met 3 à 5
   titres, affiche à l'écran, et on devine qui regarde quoi.
 - **Qui dans le groupe ?** — une question par manche, chacun désigne un joueur,
@@ -62,9 +65,13 @@ core/
 games/
   _shared/
     devine-qui.js           moteur « chacun soumet, on devine qui »
+    deezer.js               proxy Deezer, commun aux deux jeux musicaux
+    reponses.js             comparaison tolérante des réponses libres
   blindtest/
-    server.js               ce qui est propre à la musique
-    deezer.js               proxy Deezer : recherche et signature des extraits
+    server.js               ce qui est propre à « Qui a mis ça ? »
+  devine-la-musique/
+    server.js               règles (REGLAGES / SELECTION / MANCHE / REVELATION)
+    titres.js               ce qui compte comme « j'ai trouvé le titre »
   qui-regarde-ca/
     server.js               ce qui est propre aux séries et aux films
     tmdb.js                 proxy TMDB : recherche films + séries, affiches
@@ -73,7 +80,6 @@ games/
     questions.js            banque de questions par défaut
   devine-le-craft/
     server.js               règles (QUESTION / REVEAL)
-    reponses.js             comparaison tolérante des réponses libres
     recettes.json           102 recettes, généré — ne pas éditer à la main
   uno/                      « Unai » — le dossier garde son nom technique
     server.js               tour par tour, règles maison, manches
@@ -81,6 +87,7 @@ games/
 tools/
   generer-recettes.js       refabrique recettes.json depuis minecraft-data
   verifier-cartes-uno.js    quelles images de cartes manquent encore (Unai)
+  verifier-tops.js          les tops Deezer répondent-ils ? (mode aléatoire)
 public/
   index.html                coquille : accueil, création, salon, #game-root, scores
   style.css
@@ -89,14 +96,16 @@ public/
     remerciements.js        les noms de la page « Merci » — le seul fichier à éditer
     dom.js, clock.js, sound.js
   games/_shared/devine-qui.js          moteur commun, côté écran
+  games/_shared/recherche.js           champ de recherche et son anti-rebond
   games/blindtest/client.js            pré-écoute + audio synchronisé
+  games/devine-la-musique/client.js    disque qui bat, saisie, fond animé
   games/qui-regarde-ca/client.js       affiches
   games/qui-dans-le-groupe/client.js   questions et votes
   games/devine-le-craft/client.js      grille de craft et saisie
   games/uno/client.js                  la table, les sièges, la main
   games/uno/cartes/                    tes images de cartes (voir LISEZMOI)
 tests/
-  sim.js … sim8.js          simulations de parties, sans navigateur
+  sim.js … sim9.js          simulations de parties, sans navigateur
   simdom.js                 monte les clients dans un DOM headless
 ```
 
@@ -248,6 +257,22 @@ Ceux de « Qui regarde ça ? » :
 | `QRC_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
 | `QRC_POINTS_CORRECT` / `QRC_POINTS_FOOLED` | 100 / 50 | points |
 
+Ceux de « Devine la musique » — le mode, le genre et le nombre de morceaux se
+choisissent dans la partie, pas ici :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `DLM_MANCHES` | 12 | morceaux par partie (valeur proposée à l'hôte) |
+| `DLM_MANCHES_MIN` / `DLM_MANCHES_MAX` | 3 / 30 | bornes du réglage |
+| `DLM_MIN` / `DLM_MAX` | 5 / 10 | morceaux déposés par joueur, en mode sélection |
+| `DLM_LEAD_MS` | 3000 | préchargement avant le top départ synchronisé |
+| `DLM_MANCHE_MS` | 32000 | durée d'une manche — un extrait Deezer fait 30 s |
+| `DLM_REVEAL_MS` | 0 | `0` : l'hôte enchaîne lui-même |
+| `DLM_POINTS_TITRE` / `DLM_POINTS_ARTISTE` | 100 / 60 | points, séparément |
+| `DLM_MAX_ESSAIS` | 15 | essais par joueur et par manche |
+| `CHART_TTL_MS` | 6 h | durée de vie du cache des tops |
+| `CHART_PAGES` | 3 | pages de top chargées — ~300 morceaux dans le vivier |
+
 Ceux d'Unai — ce sont les valeurs de départ, l'hôte peut tout changer avant de
 distribuer :
 
@@ -353,6 +378,52 @@ lettre rappelée dans une légende.
 ignorés, articles retirés, et une ou deux lettres de différence pardonnées selon
 la longueur du mot. La marge reste assez serrée pour que « four » ne valide pas
 « haut fourneau », ni « arc » « arbalète » — `sim7` vérifie les deux sens.
+
+## Les deux modes de « Devine la musique »
+
+**Mode sélection.** Chacun dépose entre 5 et 10 morceaux, comme dans « Qui a mis
+ça ? », puis on devine. La différence : quand ton morceau passe, tu ne peux pas
+répondre — le serveur refuse l'action, il ne se contente pas de cacher le champ.
+Tu vois ton titre à l'écran, puisque tu le connais déjà.
+
+Deux joueurs qui choisissent le même morceau le font passer **une seule fois**,
+et ils en sont tous les deux propriétaires. Un morceau que *tout le monde* a
+choisi est écarté du tirage : personne ne pourrait répondre. Et le tirage sert
+les joueurs à tour de rôle, pour que les morceaux de chacun passent, pas
+seulement ceux du plus bavard.
+
+**Mode aléatoire.** Les morceaux viennent des tops Deezer (`/chart`), au choix
+tous genres ou par genre. C'est volontaire : un morceau que personne ne connaît
+ne se devine pas. Ce mode se joue même à un seul joueur.
+
+> **À vérifier chez toi une fois.** Ce mode n'a jamais pu être essayé contre le
+> vrai Deezer : la machine où il a été écrit n'a pas d'accès sortant vers
+> `api.deezer.com`. Le code est écrit pour échouer proprement (l'hôte voit
+> « Deezer n'a pas répondu, passe en mode sélection ») plutôt que de planter,
+> mais que les tops répondent vraiment reste à constater :
+>
+> ```bash
+> npm run tops
+> ```
+>
+> L'outil dit, étape par étape, si `/genre` et `/chart` répondent, combien de
+> morceaux jouables ils rendent, et si le choix du genre change réellement la
+> liste. Le mode sélection, lui, ne dépend d'aucun top.
+
+### Ce qui compte comme une bonne réponse
+
+Deezer rend des titres de catalogue : `SICKO MODE (feat. Drake)`,
+`Starboy - Radio Edit`, `Thriller – 2015 Remaster`. Le joueur, lui, tape
+`sicko mode`. `games/devine-la-musique/titres.js` construit donc les variantes
+acceptables de chaque morceau, et s'appuie sur le comparateur déjà utilisé par
+« Devine le craft » pour les accents, les articles et les fautes de frappe.
+
+Le titre et l'artiste comptent séparément, et une seule frappe peut valider les
+deux : `blinding lights the weeknd` rapporte les deux lots, parce que c'est
+comme ça qu'on crie une réponse. Quand un côté est reconnu et pas l'autre, il
+est retiré de la phrase et le reste est comparé en entier — c'est ce qui sauve
+les titres courts, qu'on ne peut pas chercher à l'aveugle dans une phrase sans
+attraper n'importe quoi (`numb linkin park`).
 
 ## Thème de saison
 
@@ -504,6 +575,7 @@ npm run sim5         # qui dans le groupe : écriture, majorité, points
 npm run sim6         # qui regarde ça : validation, secret, partie complète
 npm run sim7         # devine le craft : tolérance aux fautes, secret, partie complète
 npm run sim8         # unai : règles de pose, annonce, secret des mains, partie complète
+npm run sim9         # devine la musique : bornes, tirage, verrou du propriétaire, secret
 
 # Les clients, dans un DOM headless — le seul test qui attrape un module
 # cassé ou absent, ce que les simulations serveur ne voient pas.

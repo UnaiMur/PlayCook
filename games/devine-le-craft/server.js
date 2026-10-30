@@ -15,7 +15,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { num } from '../../core/env.js';
-import { correspond } from './reponses.js';
+import { correspond } from '../_shared/reponses.js';
 
 const ICI = dirname(fileURLToPath(import.meta.url));
 // JSON lu a la main plutot qu'importe : les attributs d'import ne s'ecrivent

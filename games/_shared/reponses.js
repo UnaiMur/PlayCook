@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
-// Comparaison des reponses libres.
+// Comparaison des reponses libres. Partage par les jeux ou l'on tape la
+// reponse au clavier : « Devine le craft » et « Devine la musique ».
 //
 // Le joueur tape au clavier, souvent vite et sur un telephone : « etabli »,
 // « Établi », « table de craft », « etablie ». Tout ca doit passer. En
@@ -8,7 +9,9 @@
 // ---------------------------------------------------------------------------
 
 // Articles courants en tete de reponse : « un etabli » vaut « etabli ».
-const ARTICLES = /^(un|une|le|la|les|des|du|de la|de l|l|d)\s+/;
+// « the » est la pour les titres et les artistes anglophones : « the weeknd »
+// doit valoir « weeknd », comme « les clash » vaut « clash ».
+const ARTICLES = /^(un|une|le|la|les|des|du|de la|de l|l|d|the)\s+/;
 
 export function normaliser(texte) {
   return String(texte ?? '')

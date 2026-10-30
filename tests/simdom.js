@@ -33,6 +33,52 @@ const SCENARIOS = {
         deltas: {}, scores: [{ pseudo: 'Alice', score: 100, delta: 100 }], isLast: false } },
   ],
 
+  // Les quatre ecrans de « Devine la musique ». `_absent` est propre au test :
+  // pendant la manche, celui qui cherche ne doit PAS voir le titre arriver a
+  // l'ecran — c'est la regle du jeu, et elle se verifie jusque dans le DOM.
+  'devine-la-musique': [
+    { phase: 'REGLAGES',
+      reglages: { mode: 'aleatoire', genre: '0', manches: 12, min: 3, max: 30,
+        minMorceaux: 5, maxMorceaux: 10, chargement: false, erreur: '',
+        jeSuisHote: true, selectionPossible: true, joueurs: 3 } },
+    { phase: 'SELECTION',
+      selection: { minMorceaux: 5, maxMorceaux: 10,
+        mesMorceaux: [{ trackKey: '123', title: 'Mon choix', artist: 'Mon artiste', artwork: '' }],
+        jePret: false, jeSuisHote: true, chargement: false, pretAPartir: false,
+        tableau: [{ pseudo: 'Alice', pret: false, combien: 1 }] } },
+    // Celui qui cherche : un disque, pas de pochette, pas de titre.
+    { phase: 'MANCHE', _absent: ['Comete', 'Hirondelle'],
+      manche: { index: 1, total: 12, startAt: Date.now(), endsAt: Date.now() + 5000,
+        previewUrl: null, peutRepondre: true, monMorceau: null,
+        jaiTitre: true, jaiArtiste: false, jaiAbandonne: false, monRang: null,
+        mesEssais: [
+          { texte: 'nawak', titre: false, artiste: false, connu: false },
+          { texte: 'bonne pioche', titre: true, artiste: false, connu: false },
+        ],
+        tableau: [
+          { pseudo: 'Alice', proprietaire: false, titre: true, artiste: false, abandon: false },
+          { pseudo: 'Bob', proprietaire: true, titre: false, artiste: false, abandon: false },
+        ] } },
+    // Le proprietaire : lui connait la reponse, on la lui montre.
+    { phase: 'MANCHE',
+      manche: { index: 2, total: 12, startAt: Date.now(), endsAt: Date.now() + 5000,
+        previewUrl: null, peutRepondre: false,
+        monMorceau: { title: 'Comete', artist: 'Hirondelle', artwork: '' },
+        jaiTitre: false, jaiArtiste: false, jaiAbandonne: false, monRang: null,
+        mesEssais: [],
+        tableau: [
+          { pseudo: 'Alice', proprietaire: true, titre: false, artiste: false, abandon: false },
+          { pseudo: 'Bob', proprietaire: false, titre: false, artiste: true, abandon: false },
+        ] } },
+    { phase: 'REVELATION',
+      revelation: { index: 1, total: 12, title: 'Comete', artist: 'Hirondelle', artwork: '',
+        proprietaires: ['Bob'],
+        detail: [{ pseudo: 'Alice', titre: true, artiste: true, rang: 1, bonus: 50,
+          points: 210, secondes: 6.1 }],
+        bredouilles: ['Cook'],
+        scores: [{ pseudo: 'Alice', score: 210, delta: 210 }], isLast: false } },
+  ],
+
   'qui-regarde-ca': [
     { phase: 'PICKING', config: { minItems: 3, maxItems: 5 }, counts: {},
       mySubmissions: [{ id: 's1', tmdbId: '1396', kind: 'série', title: 'Breaking Bad', year: '2008', poster: POSTER }],
@@ -201,10 +247,18 @@ for (const [id, phases] of Object.entries(SCENARIOS)) {
     // Le titre de l'element doit arriver jusqu'a l'ecran : c'est tout l'objet
     // du jeu, et une erreur de nom de champ ne se verrait pas autrement.
     const attendu = view.round?.title || view.reveal?.title || view.round?.text
-      || view.reveal?.resultat;
+      || view.reveal?.resultat || view.revelation?.title;
     if (attendu) {
       check(texte.includes(attendu),
         `${id} / ${view.phase} : « ${attendu} » n'apparait pas a l'ecran`);
+    }
+
+    // Et l'inverse : ce qui doit rester cache doit rester cache. Le serveur ne
+    // l'envoie deja pas, mais si un jour il l'envoyait, le client ne doit pas
+    // l'afficher pour autant.
+    for (const interdit of view._absent || []) {
+      check(!texte.includes(interdit),
+        `${id} / ${view.phase} : « ${interdit} » ne devrait pas être à l'écran`);
     }
   }
 

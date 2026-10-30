@@ -15,7 +15,9 @@
     "sim6": "node tests/sim6.js",
     "sim7": "node tests/sim7.js",
     "sim8": "node tests/sim8.js",
-    "simdom": "node tests/simdom.js"
+    "sim9": "node tests/sim9.js",
+    "simdom": "node tests/simdom.js",
+    "tops": "node tools/verifier-tops.js"
   },
   "engines": {
     "node": ">=20"

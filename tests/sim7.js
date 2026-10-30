@@ -6,7 +6,7 @@
 // passage que la grille envoyée au client correspond bien aux données.
 import { io } from 'socket.io-client';
 import { readFileSync } from 'fs';
-import { correspond, normaliser } from '../games/devine-le-craft/reponses.js';
+import { correspond, normaliser } from '../games/_shared/reponses.js';
 
 const URL = 'http://localhost:3000';
 const GAME = 'devine-le-craft';

@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------------
 import { num, bool } from '../../core/env.js';
 import { createGuessWho } from '../_shared/devine-qui.js';
-import { routes as deezerRoutes, resolvePreview, ARTWORK_HOST } from './deezer.js';
+import { routes as deezerRoutes, resolvePreview, ARTWORK_HOST } from '../_shared/deezer.js';
 
 export const meta = {
   id: 'blindtest',
@@ -49,7 +49,9 @@ const CONFIG = {
   pointsPerFooled: num(process.env.POINTS_FOOLED, 50),
 };
 
-export const routes = deezerRoutes;
+// Le prefixe est fige ici : /api/blindtest/search et /preview, comme avant que
+// le proxy ne devienne commun. Le client n'a pas a savoir qu'il est partage.
+export const routes = (app) => deezerRoutes(app, 'blindtest');
 
 const clean = (s) => String(s ?? '').slice(0, 200);
 

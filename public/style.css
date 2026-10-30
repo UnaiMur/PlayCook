@@ -20,6 +20,13 @@ body {
   line-height: 1.5;
 }
 
+/* La lueur qui bat autour de la pochette deborde volontairement de sa boite :
+   c'est ce qui lui donne son halo. Sans ca, elle poussait la page de 22 px sur
+   un ecran de telephone, et la mise en page tremblait au rythme de la musique.
+   `clip` plutot que `hidden` : on coupe sans creer de conteneur de defilement,
+   donc rien d'autre ne change de comportement. */
+html, body { overflow-x: clip; }
+
 header {
   display: flex;
   align-items: center;
@@ -725,11 +732,95 @@ ul, ol { list-style: none; padding: 0; margin: 0; }
   .pochette::before, .pochette .art { transform: none; }
 }
 
+/* --- « Devine la musique » ------------------------------------------------- */
+
+/* Le choix du mode, sur l'ecran des reglages. */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.modes button.picked { background: var(--accent); border-color: var(--accent); }
+.modes button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Un reglage sur une ligne : son intitule a gauche, son controle a droite. */
+.champ { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.champ > span { color: var(--muted); font-size: 14px; }
+.champ select, .champ input { width: auto; min-width: 140px; margin-bottom: 0; }
+/* Le menu deroulant natif arrive en clair sur clair selon le navigateur : on
+   lui donne la meme mise que les champs de saisie, plutot que de le laisser
+   detonner au milieu d'une interface sombre. */
+.champ select {
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.erreur {
+  color: var(--bad);
+  border: 1px solid var(--bad);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+/* Le disque qui tourne.
+   Pendant la manche il n'y a volontairement RIEN a regarder : afficher la
+   pochette donnerait la reponse avant la premiere note. Ce disque prend donc sa
+   place, et bat comme elle le ferait.
+
+   La rotation et la pulsation visent deux proprietes distinctes (`rotate` et
+   `scale`) plutot qu'un `transform` partage : sans cela l'animation ecraserait
+   l'echelle, et le disque tournerait sans jamais battre. */
+.disque {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 12px auto 18px;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(255, 255, 255, .05) 0 1px, transparent 1px 5px),
+    radial-gradient(circle at 50% 50%,
+      var(--accent) 0 17%, var(--card) 17% 20%, #0b0a10 20% 100%);
+  box-shadow: inset 0 0 44px rgba(0, 0, 0, .55);
+  scale: calc(1 + var(--pulse, 0) * .10);
+  animation: tourne 3.6s linear infinite;
+}
+/* Le trou central, de la couleur du fond : c'est ce qui le fait lire comme un
+   disque et pas comme une cible. */
+.disque::after {
+  content: '';
+  position: absolute;
+  inset: calc(50% - 7px);
+  border-radius: 50%;
+  background: var(--bg);
+}
+@keyframes tourne { from { rotate: 0deg; } to { rotate: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .disque { animation: none; scale: 1; }
+}
+
+/* Ce qu'il reste a trouver : deux pastilles qui s'allument. */
+.marques { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+.marque {
+  font-size: 13px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.marque.ok { color: var(--ok); border-color: var(--ok); }
+
+/* Un titre deja trouve et redonne : ni bon ni faux, juste deja connu. */
+.tries li.connu span:last-child { color: var(--muted); }
+
 /* Pendant que le fond bouge, le texte se détache sur un halo sombre : sans ça
    une particule qui passe derrière rend le titre illisible. */
 .avecFond #game-root h2,
 .avecFond #game-root h3,
 .avecFond #game-root .artist,
+.avecFond #game-root .marque,
 .avecFond #game-root .hint {
   text-shadow: 0 1px 5px var(--bg), 0 0 14px var(--bg), 0 0 22px var(--bg);
 }
