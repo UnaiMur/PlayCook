@@ -37,7 +37,7 @@ export const meta = {
     'En mode sélection, tu ne réponds pas sur tes propres morceaux.',
   ],
   minPlayers: 1,        // le mode aleatoire se joue tres bien seul
-  maxPlayers: 12,
+  maxPlayers: 20,
   allowLateJoin: false,
 };
 

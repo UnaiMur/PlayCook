@@ -35,7 +35,7 @@ export const meta = {
     'Les manches montent en difficulté au fil de la partie.',
   ],
   minPlayers: 1,      // ca se joue tres bien seul, pour s'entrainer
-  maxPlayers: 12,
+  maxPlayers: 20,
   allowLateJoin: false,
 };
 
