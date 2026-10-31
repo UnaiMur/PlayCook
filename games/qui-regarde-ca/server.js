@@ -26,7 +26,7 @@ export const meta = {
     'Si personne ne te démasque, tu gagnes 50 points par joueur piégé.',
   ],
   minPlayers: 2,
-  maxPlayers: 12,
+  maxPlayers: 20,
   allowLateJoin: false,
 };
 
